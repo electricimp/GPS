@@ -173,8 +173,6 @@ class GPS {
     _lastLong = 0;
     _isValid = false;
     
-    static CHECKSUM_THRESH = 2;
-    
     constructor(uart, cb=null) {
         _gps = uart;
         _gps.setrxfifosize(512);
@@ -198,8 +196,7 @@ class GPS {
             }
             _setLastLatLong(_last_table);
             
-            _isValid = ("checkSum" in _last_table && math.abs(_last_table.checkSum - 
-            _fields.calcCheckSum(_gps_line)) < CHECKSUM_THRESH);
+            _isValid = ("checkSum" in _last_table && (_last_table.checkSum ==_fields.calcCheckSum(_gps_line)));
         }
         else {
             _gps_line += ch.tochar();
