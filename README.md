@@ -1,1 +1,1 @@
-# GPSClick
+# GPS Library
