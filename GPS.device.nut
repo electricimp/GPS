@@ -105,7 +105,7 @@ class GPSFields {
                     
                     retTable.status <- "Active";
                     retTable.fixQuality <- parsedFields[6];
-                    retTable.numSatellites <- parsedFields[7];
+                    retTable.numSatellites <- parsedFields[7].tointeger();
                     retTable.altitude <- parsedFields[9].tofloat();
                     
                     local checkLen = parsedFields[parsedFields.len() - 1].len();
@@ -114,7 +114,7 @@ class GPSFields {
                 // Satellites in view
                 case GPS_GSV:
                     retTable.type <- GPS_GSV;
-                    retTable.numSatellites <- parsedFields[3];
+                    retTable.numSatellites <- parsedFields[3].tointeger();
                     local checkLen = parsedFields[parsedFields.len() - 1].len();
                     retTable.checkSum <- parsedFields[parsedFields.len()-1].slice(checkLen-4, checkLen-2);
                     break;
