@@ -64,19 +64,16 @@ class GPSFields {
         local retTable = {};
         local parsedFields = parseFields(sentence);
         if (parsedFields != null && parsedFields.len() > 0) {
-            switch(parsedFields[0]) {
+            switch (parsedFields[0]) {
                 // Velocity made good
                 case GPS_VTG:
                     retTable.type <- GPS_VTG;
-                    if(parsedFields[1] != "") {
+                    if (parsedFields[1] != "") {
                         retTable.trackt <- parsedFields[1];
                     }
-                    if(parsedFields[7] != "") {
+                    if (parsedFields[7] != "") {
                         retTable.speedkmh <- parsedFields[7];
                     }
-                    
-                    local checkLen = parsedFields[parsedFields.len() - 1].len();
-                    retTable.checkSum <- parsedFields[parsedFields.len()-1].slice(checkLen-4, checkLen-2);
                     break;
                 // Recommended Minimum
                 case GPS_RMC:
@@ -85,15 +82,10 @@ class GPSFields {
                     if (lat.len() <= 1) break; // no data
 
                     _extractTime(parsedFields[1], retTable);
-
                     _extractLat(lat, retTable, parsedFields[4]);
-
                     _extractLong(parsedFields[5], retTable, parsedFields[6]);
                     
                     retTable.status <- (parsedFields[2] == "A" ? "Active" : "Void");
-                    
-                    local checkLen = parsedFields[parsedFields.len() - 1].len();
-                    retTable.checkSum <- parsedFields[parsedFields.len()-1].slice(checkLen-4, checkLen-2);
                     break;
                 // Geographic Latitude and Longitude
                 case GPS_GLL:
@@ -102,15 +94,10 @@ class GPSFields {
                     if (lat.len() <= 1) break;
                     
                     _extractLat(lat, retTable, parsedFields[2]);
-                    
                     _extractLong(parsedFields[3], retTable, parsedFields[4]);
-
                     _extractTime(parsedFields[5], retTable);
                     
                     retTable.status <- (parsedFields[6] == "A" ? "Active" : "Void");
-                    
-                    local checkLen = parsedFields[parsedFields.len() - 1].len();
-                    retTable.checkSum <- parsedFields[parsedFields.len()-1].slice(checkLen-4, checkLen-2);
                     break;
                 // Essential Fix data
                 case GPS_GGA:
@@ -119,25 +106,18 @@ class GPSFields {
                     if (lat.len() <= 1) break; // no data
                     
                     _extractTime(parsedFields[1], retTable);
-                    
                     _extractLat(lat, retTable, parsedFields[3]);
-
                     _extractLong(parsedFields[4], retTable, parsedFields[5]);
                     
                     retTable.status <- "Active";
                     retTable.fixQuality <- parsedFields[6];
                     retTable.numSatellites <- parsedFields[7].tointeger();
                     retTable.altitude <- parsedFields[9].tofloat();
-                    
-                    local checkLen = parsedFields[parsedFields.len() - 1].len();
-                    retTable.checkSum <- parsedFields[parsedFields.len()-1].slice(checkLen-4, checkLen-2);
                     break;
                 // Satellites in view
                 case GPS_GSV:
                     retTable.type <- GPS_GSV;
                     retTable.numSatellites <- parsedFields[3].tointeger();
-                    local checkLen = parsedFields[parsedFields.len() - 1].len();
-                    retTable.checkSum <- parsedFields[parsedFields.len()-1].slice(checkLen-4, checkLen-2);
                     break;
                 // GPS DOP and active satellites
                 case GPS_GSA:
@@ -148,26 +128,28 @@ class GPSFields {
                     retTable.PDOP <- parsedFields[len-4];
                     retTable.HDOP <- parsedFields[len-3];
                     retTable.VDOP <- parsedFields[len-2];
-                    
-                    local checkLen = parsedFields[parsedFields.len() - 1].len();
-                    retTable.checkSum <- parsedFields[parsedFields.len()-1].slice(checkLen-4, checkLen-2);
                     break;
+                // return empty table if not a supported data type
+                default:
+                    return {};
             }
         }
+        local checkLen = parsedFields[parsedFields.len() - 1].len();
+        retTable.checkSum <- parsedFields[parsedFields.len()-1].slice(checkLen-4, checkLen-2);
         return retTable;
     }
 
     // Get the latitude from strings. Store it in tb
     function _extractLat(str, tb, direction) {
         local lat = str.slice(0, 2).tofloat() + (str.slice(2).tofloat()/60);
-        if(direction == "S") lat = -lat;
+        if (direction == "S") lat = -lat;
         tb.latitude <- lat;
     }
 
     // Get the longitude from strings. Store it in tb
     function _extractLong(str, tb, direction) {
         local long = str.slice(0, 3).tofloat() + (str.slice(3).tofloat()/60);
-        if(direction == "W") long = -long;
+        if (direction == "W") long = -long;
         tb.longitude <- long;
     }
 
@@ -213,7 +195,31 @@ class GPS {
         _gps.configure(baudrate, 8, PARITY_NONE, 1, NO_CTSRTS, _gpsRxdata.bindenv(this));
         _fixCallback = fixCallback;
     }
+
+    function getLastLatitude() {
+        return _lastLat;
+    }
     
+    function getLastLongitude() {
+        return _lastLong;
+    }
+
+    function getNumSatellites() {
+        return _numSatellites;
+    }
+    
+    function _setLastLatLong(tb) {
+        if (tb != null && tb.len() > 1) {
+            if (tb.type != GPS_VTG && tb.type != GPS_GSV && tb.type != GPS_GSA) { // VTG/GSV/GSA don't have
+            // latitude/longitude data
+                // Check for void data 
+                if (tb.status == "Active" && _isValid) {
+                    _lastLat = tb.latitude;
+                    _lastLong = tb.longitude;
+                }
+            }
+        }
+    }
     // This private method is the uart callback. It continues to append characters
     // to a line until it reaches a '$', indicating the start of a new line. Once it reaches this,
     // it parses the previous line and calls callbacks (if provided), as well as setting
@@ -221,7 +227,6 @@ class GPS {
     function _gpsRxdata() {
         local ch = _gps.read()
         if (ch  == '$') {
-            
             _lastTable = _fields.extractData(_gpsLine);
             _isValid = ("checkSum" in _lastTable && (_lastTable.checkSum ==_fields.calcCheckSum(_gpsLine)));
 
@@ -243,27 +248,6 @@ class GPS {
             _gpsLine += ch.tochar();
         }
     }
-
-    function getLastLatitude() {
-        return _lastLat;
-    }
-    
-    function getLastLongitude() {
-        return _lastLong;
-    }
-    
-    function _setLastLatLong(tb) {
-        if (tb != null && tb.len() > 1) {
-            if (tb.type != GPS_VTG && tb.type != GPS_GSV && tb.type != GPS_GSA) { // VTG/GSV/GSA don't have
-            // latitude/longitude data
-                // Check for void data 
-                if (tb.status == "Active" && _isValid) {
-                    _lastLat = tb.latitude;
-                    _lastLong = tb.longitude;
-                }
-            }
-        }
-    }
     
     function _setNumSatellites(tb) {
         if (tb != null && tb.len() > 1 && (tb.type == GPS_GGA || tb.type == GPS_GSV)) {
@@ -271,7 +255,4 @@ class GPS {
         }
     }
     
-    function getNumSatellites() {
-        return _numSatellites;
-    }
 }
