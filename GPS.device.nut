@@ -31,8 +31,8 @@ class GPSFields {
     // Used to determine the validity of the data
     function calcCheckSum(sentence) {
         local check = 0;
-        foreach(i in sentence) {
-            if(i == '*') {
+        foreach (i in sentence) {
+            if (i == '*') {
                 break;
             }
             check = check ^ i;
@@ -45,15 +45,15 @@ class GPSFields {
     function parseFields(sentence) {
         local str = "";
         local fields = [];
-        foreach(i in sentence) {
-            if(i == ',' || i == '*') {
+        foreach (i in sentence) {
+            if (i == ',' || i == '*') {
                 fields.push(str);
                 str = "";
             } else {
                 str+=i.tochar();
             }
         }
-        if(str.len() > 0) {
+        if (str.len() > 0) {
             fields.push(str);
         }
         return fields;
@@ -63,7 +63,7 @@ class GPSFields {
     function extractData(sentence) {
         local retTable = {};
         local parsedFields = parseFields(sentence);
-        if(parsedFields != null && parsedFields.len() > 0) {
+        if (parsedFields != null && parsedFields.len() > 0) {
             switch(parsedFields[0]) {
                 // Velocity made good
                 case GPS_VTG:
@@ -82,7 +82,7 @@ class GPSFields {
                 case GPS_RMC:
                     retTable.type <- GPS_RMC;
                     local lat = parsedFields[3];
-                    if(lat.len() <= 1) break; // no data
+                    if (lat.len() <= 1) break; // no data
 
                     _extractTime(parsedFields[1], retTable);
 
@@ -99,7 +99,7 @@ class GPSFields {
                 case GPS_GLL:
                     retTable.type <- GPS_GLL;
                     local lat = parsedFields[1];
-                    if(lat.len() <= 1) break;
+                    if (lat.len() <= 1) break;
                     
                     _extractLat(lat, retTable, parsedFields[2]);
                     
@@ -116,7 +116,7 @@ class GPSFields {
                 case GPS_GGA:
                     retTable.type <- GPS_GGA;
                     local lat = parsedFields[2];
-                    if(lat.len() <= 1) break; // no data
+                    if (lat.len() <= 1) break; // no data
                     
                     _extractTime(parsedFields[1], retTable);
                     
@@ -220,7 +220,7 @@ class GPS {
     // values in the class that can be accessed (e.g. lat and long)
     function _gpsRxdata() {
         local ch = _gps.read()
-        if(ch  == '$') {
+        if (ch  == '$') {
             
             _lastTable = _fields.extractData(_gpsLine);
             _isValid = ("checkSum" in _lastTable && (_lastTable.checkSum ==_fields.calcCheckSum(_gpsLine)));
@@ -231,13 +231,13 @@ class GPS {
             _setLastLatLong(_lastTable);
             _setNumSatellites(_lastTable);
             
-            if(_lastTable.len() && _lastTable.type == GPS_GGA) {
+            if (_lastTable.len() && _lastTable.type == GPS_GGA) {
                 _fix = (_lastTable.fixQuality.tointeger() > 0);
             }
 
             _fixCallback(_fix, _lastTable);
 
-        } else if(_gpsLine.len() > LINE_MAX) {
+        } else if (_gpsLine.len() > LINE_MAX) {
             _gpsLine = "";
         } else {
             _gpsLine += ch.tochar();
@@ -253,11 +253,11 @@ class GPS {
     }
     
     function _setLastLatLong(tb) {
-        if(tb != null && tb.len() > 1) {
-            if(tb.type != GPS_VTG && tb.type != GPS_GSV && tb.type != GPS_GSA) { // VTG/GSV/GSA don't have
+        if (tb != null && tb.len() > 1) {
+            if (tb.type != GPS_VTG && tb.type != GPS_GSV && tb.type != GPS_GSA) { // VTG/GSV/GSA don't have
             // latitude/longitude data
                 // Check for void data 
-                if(tb.status == "Active" && _isValid) {
+                if (tb.status == "Active" && _isValid) {
                     _lastLat = tb.latitude;
                     _lastLong = tb.longitude;
                 }
@@ -266,7 +266,7 @@ class GPS {
     }
     
     function _setNumSatellites(tb) {
-        if(tb != null && tb.len() > 1 && (tb.type == GPS_GGA || tb.type == GPS_GSV)) {
+        if (tb != null && tb.len() > 1 && (tb.type == GPS_GGA || tb.type == GPS_GSV)) {
             _numSatellites = tb.numSatellites;
         }
     }
