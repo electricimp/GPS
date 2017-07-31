@@ -45,4 +45,4 @@ local numSats = myGPS.getNumSatellites();
 
 ## License
 
-The LIS3DH class is licensed under [MIT License](./LICENSE).
+The GPS class is licensed under [MIT License](./LICENSE).
