@@ -52,7 +52,7 @@ class MyTestCase extends ImpTestCase {
 	function testSatellites() {
 		return Promise(function(resolve, reject) {
 				local myGPS = getGPS(function(fix, tb) {
-						if(fix) {
+						if (fix) {
 							if (tb.numSatellites > 0) {
 								resolve("fix with non-zero satellites");
 							} else {
