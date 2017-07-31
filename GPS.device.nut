@@ -210,7 +210,7 @@ class GPS {
     
     function _setLastLatLong(tb) {
         if (tb != null && tb.len() > 1) {
-            if (tb.type != GPS_VTG && tb.type != GPS_GSV && tb.type != GPS_GSA) { // VTG/GSV/GSA don't have
+            if (tb.type == GPS_GGA || tb.type == GPS_GLL || tb.type == GPS_RMC) { // VTG/GSV/GSA don't have
             // latitude/longitude data
                 // Check for void data 
                 if (tb.status == "Active" && _isValid) {
