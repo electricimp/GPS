@@ -26,7 +26,7 @@ const GPS_GLL = "GPGLL";
 const GPS_GSV = "GPGSV";
 const GPS_GSA = "GPGSA";
 
-class GPSFields {
+class GPS.Fields {
 
     // Used to determine the validity of the data
     function calcCheckSum(sentence) {
@@ -81,9 +81,9 @@ class GPSFields {
                     local lat = parsedFields[3];
                     if (lat.len() <= 1) break; // no data
 
-                    _extractTime(parsedFields[1], retTable);
-                    _extractLat(lat, retTable, parsedFields[4]);
-                    _extractLong(parsedFields[5], retTable, parsedFields[6]);
+                    tb.time <- _extractTime(parsedFields[1]);
+                    tb.latitude <- _extractLat(lat, parsedFields[4]);
+                    tb.longitude <- _extractLong(parsedFields[5], parsedFields[6]);
                     
                     retTable.status <- (parsedFields[2] == "A" ? "Active" : "Void");
                     break;
@@ -93,9 +93,9 @@ class GPSFields {
                     local lat = parsedFields[1];
                     if (lat.len() <= 1) break;
                     
-                    _extractLat(lat, retTable, parsedFields[2]);
-                    _extractLong(parsedFields[3], retTable, parsedFields[4]);
-                    _extractTime(parsedFields[5], retTable);
+                    tb.latitude <- _extractLat(lat, parsedFields[2]);
+                    tb.longitude <- _extractLong(parsedFields[3], parsedFields[4]);
+                    tb.time <- _extractTime(parsedFields[5]);
                     
                     retTable.status <- (parsedFields[6] == "A" ? "Active" : "Void");
                     break;
@@ -105,9 +105,9 @@ class GPSFields {
                     local lat = parsedFields[2];
                     if (lat.len() <= 1) break; // no data
                     
-                    _extractTime(parsedFields[1], retTable);
-                    _extractLat(lat, retTable, parsedFields[3]);
-                    _extractLong(parsedFields[4], retTable, parsedFields[5]);
+                    tb.time <- _extractTime(parsedFields[1]);
+                    tb.latitude <- _extractLat(lat, parsedFields[3]);
+                    tb.longitude <- _extractLong(parsedFields[4], parsedFields[5]);
                     
                     retTable.status <- "Active";
                     retTable.fixQuality <- parsedFields[6];
@@ -140,28 +140,29 @@ class GPSFields {
     }
 
     // Get the latitude from strings. Store it in tb
-    function _extractLat(str, tb, direction) {
+    function _extractLat(str, direction) {
         local lat = str.slice(0, 2).tofloat() + (str.slice(2).tofloat()/60);
         if (direction == "S") lat = -lat;
-        tb.latitude <- lat;
+        return lat;
     }
 
     // Get the longitude from strings. Store it in tb
-    function _extractLong(str, tb, direction) {
+    function _extractLong(str, direction) {
         local long = str.slice(0, 3).tofloat() + (str.slice(3).tofloat()/60);
         if (direction == "W") long = -long;
-        tb.longitude <- long;
+        return long;
     }
 
     // Get the time from a string. Store it in tb
-    function _extractTime(str, tb) {
+    function _extractTime(str) {
         local time = str.tointeger();
-                    
-        tb.seconds <- time%100;
-        time = time/100;
-        tb.minutes <- time%100;
-        time = time/100;
-        tb.hours <- time; 
+        local timeTable = {};
+        timeTable.seconds <- time%60;
+        time = time/60;
+        timeTable.minutes <- time%60;
+        time = time/60;
+        timeTable.hours <- time; 
+        return timeTable;
     }
     
 }
@@ -173,13 +174,11 @@ class GPS {
     static VERSION = "1.0.0";
 
     _gpsLine = "";
-    gpsCounter = 0;
-    gpsRate = 30;
-    _fields = null;
     _gps = null;
     _lastTable = null;
     _lastLat = 0;
     _lastLong = 0;
+    _lastTime = null;
     _isValid = false;
     _numSatellites = 0;
     _fix = false;
@@ -189,26 +188,21 @@ class GPS {
     
     constructor(uart, fixCallback, baudrate=9600) {
         _gps = uart;
-        _fields = GPSFields();
         // GPS is configured by the constructor so that we can register
         // the rxdata callback
         _gps.configure(baudrate, 8, PARITY_NONE, 1, NO_CTSRTS, _gpsRxdata.bindenv(this));
         _fixCallback = fixCallback;
     }
 
-    function getLastLatitude() {
-        return _lastLat;
-    }
-    
-    function getLastLongitude() {
-        return _lastLong;
+    function getLastLocation() {
+        return {
+            "latitude" : _lastLat,
+            "longitude" : _lastLong,
+            "time" : _lastTime
+        };
     }
 
-    function getNumSatellites() {
-        return _numSatellites;
-    }
-    
-    function _setLastLatLong(tb) {
+    function _setLastLocation(tb) {
         if (tb != null && tb.len() > 1) {
             if (tb.type == GPS_GGA || tb.type == GPS_GLL || tb.type == GPS_RMC) { // VTG/GSV/GSA don't have
             // latitude/longitude data
@@ -216,6 +210,7 @@ class GPS {
                 if (tb.status == "Active" && _isValid) {
                     _lastLat = tb.latitude;
                     _lastLong = tb.longitude;
+                    _lastTime = tb.time;
                 }
             }
         }
@@ -227,14 +222,13 @@ class GPS {
     function _gpsRxdata() {
         local ch = _gps.read()
         if (ch  == '$') {
-            _lastTable = _fields.extractData(_gpsLine);
-            _isValid = ("checkSum" in _lastTable && (_lastTable.checkSum ==_fields.calcCheckSum(_gpsLine)));
+            _lastTable = GPS.Fields.extractData(_gpsLine);
+            _isValid = ("checkSum" in _lastTable && (_lastTable.checkSum == GPS.Fields.calcCheckSum(_gpsLine)));
 
             _gpsLine = ""; // Reset the string after a full line has been
             // collected
             
             _setLastLatLong(_lastTable);
-            _setNumSatellites(_lastTable);
             
             if (_lastTable.len() && _lastTable.type == GPS_GGA) {
                 _fix = (_lastTable.fixQuality.tointeger() > 0);
@@ -248,11 +242,4 @@ class GPS {
             _gpsLine += ch.tochar();
         }
     }
-    
-    function _setNumSatellites(tb) {
-        if (tb != null && tb.len() > 1 && (tb.type == GPS_GGA || tb.type == GPS_GSV)) {
-            _numSatellites = tb.numSatellites;
-        }
-    }
-    
 }
