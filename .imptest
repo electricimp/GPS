@@ -4,7 +4,7 @@
         "5000d8c46a56d010" /* 5000d8c46a56d010 */
     ],
     "agentFile": false,
-    "deviceFile": false,
+    "deviceFile": "GPS.device.lib.nut",
     "stopOnFailure": false,
     "timeout": 30,
     "tests": [

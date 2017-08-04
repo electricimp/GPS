@@ -2,7 +2,7 @@
 
 This library is a driver for GPS modules that can be interfaced with over UART. It does not support all data types received by GPS. It supports: VTG, RMC, GLL, GGA, GSV, and GSA. For information on satellite data packets, see [here](http://www.gpsinformation.org/dale/nmea.htm)
 
-To add this library to your project, add '#require "GPS.device.lib.nut:1.0.0' to the top of your device code.
+To add this library to your project, add ```#require "GPS.device.lib.nut:1.0.0"``` to the top of your device code.
 
 ## Class Usage
 
@@ -10,7 +10,16 @@ To add this library to your project, add '#require "GPS.device.lib.nut:1.0.0' to
 
 The class constructor takes two required parameters and one optional parameter. The first required parameter, *uart*, is a uart bus which need not have been previously configured. The second required parameter, *fixCallback*, is a callback that should be prepared to take two arguments: a boolean indicating whether the GPS currently has a fix, and a table containing the most recent GPS data. The third parameter, which is optional, is the *baudrate* of the GPS, which defaults to 9600 if it is not passed.
 
-The following tables explain the fields each data type contains:
+#### Explanation of constructor parameters:
+
+| Parameter | Description                                                |
+| --------- | ---------------------------------------------------------- |
+| *uart*    | A non-configured uart bus for getting data from GPS module |
+| *fixCallback* | A callback which takes satellite data                  |
+| *baudrate* (optional) | The baudrate to configure the uart bus to      |
+
+
+The second required parameter, *fixCallback*, will take two arguments. The first is a boolean that indicates whether the GPS currently has a fix. The second is a table containing the satellite data. The following tables explain the fields each data type contains:
 
 #### VTG
 
@@ -78,29 +87,29 @@ The following tables explain the fields each data type contains:
 
 ```squirrel
 function myCb(fix, tb) {
-	if(fix) {
-		server.log(format("I have valid %s data!", tb.type));
-		switch(tb.type) {
-			case GPS_RMC:
-				// do something with RMC
-				break;
-			case GPS_VTG: 
-				// do something with VTG
-				break;
-			case GPS_GLL:
-				// do something with GLL
-				break;
-			case GPS_GGA:
-				// do something with GGA
-				break;
-			case GPS_GSV:
-				// do something with GSV
-				break;
-			case GPS_GSA:
-				// do something with GSA
-				break;
-		}
-	}
+    if(fix) {
+        server.log(format("I have valid %s data!", tb.type));
+        switch(tb.type) {
+            case GPS_RMC:
+                // do something with RMC
+                break;
+            case GPS_VTG: 
+                // do something with VTG
+                break;
+            case GPS_GLL:
+                // do something with GLL
+                break;
+            case GPS_GGA:
+                // do something with GGA
+                break;
+            case GPS_GSV:
+                // do something with GSV
+                break;
+            case GPS_GSA:
+                // do something with GSA
+                break;
+        }
+    }
 }
 myGPS <- GPS(hardware.uart1, myCb);
 ```
