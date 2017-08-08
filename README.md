@@ -1,6 +1,6 @@
 # GPS Device Driver
 
-This library is a driver for GPS modules that can be interfaced over UART. It does not support all data types received by GPS. It supports VTG, RMC, GLL, GGA, GSV and GSA. For information on these formats and other satellite data packets, please see [this page](http://www.gpsinformation.org/dale/nmea.htm)
+This library is a driver for GPS modules that can be interfaced over UART. It does not support all data types received by GPS. It supports VTG, RMC, GLL, GGA, GSV and GSA. For information on these formats and other satellite data packets, please see [this page](http://www.gpsinformation.org/dale/nmea.htm).
 
 **To add this library to your project, add** `#require "GPS.device.lib.nut:1.0.0"` **to the top of your device code.**
 
