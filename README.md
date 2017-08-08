@@ -2,7 +2,7 @@
 
 This library is a driver for GPS modules that can be interfaced with over UART. It does not support all data types received by GPS. It supports: VTG, RMC, GLL, GGA, GSV, and GSA. For information on satellite data packets, see [here](http://www.gpsinformation.org/dale/nmea.htm)
 
-To add this library to your project, add ```#require "GPS.device.lib.nut:1.0.0"``` to the top of your device code.
+To add this library to your project, add `#require "GPS.device.lib.nut:1.0.0"` to the top of your device code.
 
 ## Class Usage
 
@@ -125,4 +125,4 @@ server.log(format("Last lat: %f, last long: %f. Received @%d:%d:%d", last.latitu
 
 ## License
 
-The GPS class is licensed under [MIT License](./LICENSE).
+The GPS library is licensed under [MIT License](./LICENSE).
