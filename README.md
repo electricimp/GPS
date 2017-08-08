@@ -21,7 +21,7 @@ The third parameter, which is optional, is the *baudrate* of the GPS, which defa
 | *type*          | *GPS_VTG*                                         |
 | *trackt*        | True track made good (degrees)                    |
 | *speedkmh*      | Speed in kilometers per hour                      |
-| *checkSum*      | Check sum, used to check the validity of the data |
+| *checkSum*      | Checksum, used to check the validity of the data  |
 
 #### RMC
 
@@ -32,7 +32,7 @@ The third parameter, which is optional, is the *baudrate* of the GPS, which defa
 | *latitude*      | The latitude received                                     |
 | *longitude*     | The longitude received                                    |
 | *status*        | The status of the satellite, `"A"` for active, `"V"` for void |
-| *checkSum*      | Check sum, used to check the validity of the data         |
+| *checkSum*      | Checksum, used to check the validity of the data          |
 
 #### GLL
 
@@ -43,7 +43,7 @@ The third parameter, which is optional, is the *baudrate* of the GPS, which defa
 | *latitude*      | The latitude received                                     |
 | *longitude*     | The longitude received                                    |
 | *status*        | The status of the satellite, `"A"` for active, `"V"` for void |
-| *checkSum*      | Check sum, used to check the validity of the data         |
+| *checkSum*      | Checksum, used to check the validity of the data          |
 
 #### GGA
 
@@ -57,7 +57,7 @@ The third parameter, which is optional, is the *baudrate* of the GPS, which defa
 | *fixQuality*    | The quality of the satellite fix                          |
 | *numSatellites* | The number of satellites being tracked                    |
 | *altitude*      | Altitude, meters, above mean sea level                    |
-| *checkSum*      | Check sum, used to check the validity of the data         |
+| *checkSum*      | Checksum, used to check the validity of the data          |
 
 #### GSV
 
@@ -65,7 +65,7 @@ The third parameter, which is optional, is the *baudrate* of the GPS, which defa
 | --------------- | --------------------------------------------------------- |
 | *type*          | *GPS_GSV*                                                 |
 | *numSatellites* | The number of satellites in view                          |
-| *checkSum*      | Check sum, used to check the validity of the data         |
+| *checkSum*      | Checksum, used to check the validity of the data          |
 
 #### GSA
 
@@ -76,7 +76,7 @@ The third parameter, which is optional, is the *baudrate* of the GPS, which defa
 | *PDOP*          | Dilution of precision                                       |
 | *HDOP*          | Horizontal dilution of precision                            |
 | *PDOP*          | Vertical dilution of precision                              |
-| *checkSum*      | Check sum, used to check the validity of the data           |
+| *checkSum*      | Checksum, used to check the validity of the data            |
 
 #### Example
 
