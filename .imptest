@@ -1,0 +1,14 @@
+{
+    "modelId": "6aux07qRC5OH" /* Maps */,
+    "devices": [
+        "5000d8c46a56d010" /* 5000d8c46a56d010 */
+    ],
+    "agentFile": false,
+    "deviceFile": "GPS.device.lib.nut",
+    "stopOnFailure": false,
+    "timeout": 30,
+    "tests": [
+        "*.test.nut",
+        "tests/**/*.test.nut"
+    ]
+}
