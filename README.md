@@ -64,7 +64,7 @@ The third parameter, which is optional, is the *baudrate* of the GPS, which defa
 | Key             | Description                                               |
 | --------------- | --------------------------------------------------------- |
 | *type*          | *GPS_GSV*                                                 |
-| *numSatellites  | The number of satellites in view                          |
+| *numSatellites* | The number of satellites in view                          |
 | *checkSum*      | Check sum, used to check the validity of the data         |
 
 #### GSA
@@ -72,7 +72,7 @@ The third parameter, which is optional, is the *baudrate* of the GPS, which defa
 | Key             | Description                                                 |
 | --------------- | ----------------------------------------------------------- |
 | *type*          | *GPS_GSA*                                                   |
-| *threeDFix*     | 3D fix - values include: 1 = no fix, 2 = 2D fix, 3 = 3D fix |
+| *threeDFix*     | 3D fix. Values: 1 = no fix, 2 = 2D fix, 3 = 3D fix          |
 | *PDOP*          | Dilution of precision                                       |
 | *HDOP*          | Horizontal dilution of precision                            |
 | *PDOP*          | Vertical dilution of precision                              |
