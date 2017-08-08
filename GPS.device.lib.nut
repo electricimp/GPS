@@ -123,9 +123,9 @@ class GPS.Fields {
                     retTable.threeDFix <- parsedFields[2];
                     local len = parsedFields.len();
                     // need to use the len b/c we don't know the number of satellite PRNs
-                    retTable.PDOP <- parsedFields[len-4];
-                    retTable.HDOP <- parsedFields[len-3];
-                    retTable.VDOP <- parsedFields[len-2];
+                    retTable.PDOP <- parsedFields[len - 4];
+                    retTable.HDOP <- parsedFields[len - 3];
+                    retTable.VDOP <- parsedFields[len - 2];
                     break;
                 // return empty table if not a supported data type
                 default:
@@ -133,20 +133,20 @@ class GPS.Fields {
             }
         }
         local checkLen = parsedFields[parsedFields.len() - 1].len();
-        retTable.checkSum <- parsedFields[parsedFields.len()-1].slice(checkLen-4, checkLen-2);
+        retTable.checkSum <- parsedFields[parsedFields.len() - 1].slice(checkLen - 4, checkLen - 2);
         return retTable;
     }
 
     // Get the latitude from strings. Store it in tb
     function _extractLat(str, direction) {
-        local lat = str.slice(0, 2).tofloat() + (str.slice(2).tofloat()/60);
+        local lat = str.slice(0, 2).tofloat() + (str.slice(2).tofloat() / 60);
         if (direction == "S") lat = -lat;
         return lat;
     }
 
     // Get the longitude from strings. Store it in tb
     function _extractLong(str, direction) {
-        local long = str.slice(0, 3).tofloat() + (str.slice(3).tofloat()/60);
+        local long = str.slice(0, 3).tofloat() + (str.slice(3).tofloat() / 60);
         if (direction == "W") long = -long;
         return long;
     }
@@ -155,10 +155,10 @@ class GPS.Fields {
     function _extractTime(str) {
         local time = str.tointeger();
         local timeTable = {};
-        timeTable.seconds <- time%60;
-        time = time/60;
-        timeTable.minutes <- time%60;
-        time = time/60;
+        timeTable.seconds <- time % 60;
+        time = time / 60;
+        timeTable.minutes <- time % 60;
+        time = time / 60;
         timeTable.hours <- time; 
         return timeTable;
     }
@@ -170,19 +170,21 @@ class GPS.Fields {
 class GPS {
     
     static VERSION = "1.0.0";
+    static LINE_MAX = 150;
+
+    _gps = null;
+    _fixCallback = null;
 
     _gpsLine = "";
-    _gps = null;
     _lastTable = null;
+    _isValid = false;
+    _fix = false;
+
     _lastLat = 0;
     _lastLong = 0;
     _lastTime = null;
-    _isValid = false;
+    
     _numSatellites = 0;
-    _fix = false;
-    _fixCallback = null;
-
-    static LINE_MAX = 150;
     
     constructor(uart, fixCallback, baudrate=9600) {
         _gps = uart;
@@ -202,8 +204,8 @@ class GPS {
 
     function _setLastLocation(tb) {
         if (tb != null && tb.len() > 1) {
-            if (tb.type == GPS_GGA || tb.type == GPS_GLL || tb.type == GPS_RMC) { // VTG/GSV/GSA don't have
-            // latitude/longitude data
+            if (tb.type == GPS_GGA || tb.type == GPS_GLL || tb.type == GPS_RMC) { 
+                // VTG/GSV/GSA don't have latitude/longitude data
                 // Check for void data 
                 if (tb.status == "Active" && _isValid) {
                     _lastLat = tb.latitude;
@@ -213,18 +215,19 @@ class GPS {
             }
         }
     }
+
     // This private method is the uart callback. It continues to append characters
     // to a line until it reaches a '$', indicating the start of a new line. Once it reaches this,
     // it parses the previous line and calls callbacks (if provided), as well as setting
     // values in the class that can be accessed (e.g. lat and long)
     function _gpsRxdata() {
-        local ch = _gps.read()
+        local ch = _gps.read();
         if (ch  == '$') {
             _lastTable = GPS.Fields.extractData(_gpsLine);
             _isValid = ("checkSum" in _lastTable && (_lastTable.checkSum == GPS.Fields.calcCheckSum(_gpsLine)));
 
-            _gpsLine = ""; // Reset the string after a full line has been
-            // collected
+            // Reset the string after a full line has been collected
+            _gpsLine = ""; 
             
             _setLastLatLong(_lastTable);
             
@@ -240,4 +243,5 @@ class GPS {
             _gpsLine += ch.tochar();
         }
     }
+
 }
