@@ -1,66 +1,59 @@
 # GPS Device Driver
 
-This library is a driver for GPS modules that can be interfaced with over UART. It does not support all data types received by GPS. It supports: VTG, RMC, GLL, GGA, GSV, and GSA. For information on satellite data packets, see [here](http://www.gpsinformation.org/dale/nmea.htm)
+This library is a driver for GPS modules that can be interfaced over UART. It does not support all data types received by GPS. It supports VTG, RMC, GLL, GGA, GSV and GSA. For information on these formats and other satellite data packets, please see [this page](http://www.gpsinformation.org/dale/nmea.htm)
 
-To add this library to your project, add `#require "GPS.device.lib.nut:1.0.0"` to the top of your device code.
+**To add this library to your project, add** `#require "GPS.device.lib.nut:1.0.0"` **to the top of your device code.**
 
 ## Class Usage
 
-### Constructor: GPS(*uart*, *fixCallback*[, *baudrate]*)
+### Constructor: GPS(*uart, fixCallback[, baudrate]*)
 
-The class constructor takes two required parameters and one optional parameter. The first required parameter, *uart*, is a uart bus which need not have been previously configured. The second required parameter, *fixCallback*, is a callback that should be prepared to take two arguments: a boolean indicating whether the GPS currently has a fix, and a table containing the most recent GPS data. The third parameter, which is optional, is the *baudrate* of the GPS, which defaults to 9600 if it is not passed.
+The class constructor takes two required parameters and one optional parameter. The first required parameter, *uart*, is an imp UART bus which need not have been previously configured.
 
-#### Explanation of constructor parameters:
+The second required parameter, *fixCallback*, is a callback function that should take two arguments: a boolean indicating whether the GPS currently has a fix, and a table containing the most recent GPS data. The table contains the key *type*, which indicates which type of data the table contains. The table’s remaining keys will depend upon the data type, and are listed in the tables below.
 
-| Parameter | Description                                                |
-| --------- | ---------------------------------------------------------- |
-| *uart*    | A non-configured uart bus for getting data from GPS module |
-| *fixCallback* | A callback which takes satellite data                  |
-| *baudrate* (optional) | The baudrate to configure the uart bus to      |
-
-
-The second required parameter, *fixCallback*, will take two arguments. The first is a boolean that indicates whether the GPS currently has a fix. The second is a table containing the satellite data. The following tables explain the fields each data type contains:
+The third parameter, which is optional, is the *baudrate* of the GPS, which defaults to 9600.
 
 #### VTG
 
-| Key             | Description                                            |
-| --------------- | ------------------------------------------------------ |
-| *type*          | The type of satellite data received                    |
-| *trackt*        | True track made good (degrees)                         |
-| *speedkmh*      | Speed in kilometers per hour                           |
-| *checkSum*      | Check sum, used to check the validity of the data      |
+| Key             | Description                                       |
+| --------------- | ------------------------------------------------- |
+| *type*          | *GPS_VTG*                                         |
+| *trackt*        | True track made good (degrees)                    |
+| *speedkmh*      | Speed in kilometers per hour                      |
+| *checkSum*      | Check sum, used to check the validity of the data |
 
 #### RMC
 
 | Key             | Description                                               |
 | --------------- | --------------------------------------------------------- |
-| *type*          | The type of satellite data received                       |
+| *type*          | *GPS_RMC*                                                 |
 | *time*          | The timestamp of received data (minutes, hours, seconds)  |
 | *latitude*      | The latitude received                                     |
 | *longitude*     | The longitude received                                    |
-| *status*        | The status of the satellite, "A" for active, "V" for void |
+| *status*        | The status of the satellite, `"A"` for active, `"V"` for void |
 | *checkSum*      | Check sum, used to check the validity of the data         |
 
 #### GLL
 
 | Key             | Description                                               |
 | --------------- | --------------------------------------------------------- |
-| *type*          | The type of satellite data received                       |
+| *type*          | *GPS_GLL*                                                 |
 | *time*          | The timestamp of received data (minutes, hours, seconds)  |
 | *latitude*      | The latitude received                                     |
 | *longitude*     | The longitude received                                    |
-| *status*        | The status of the satellite, "A" for active, "V" for void |
+| *status*        | The status of the satellite, `"A"` for active, `"V"` for void |
 | *checkSum*      | Check sum, used to check the validity of the data         |
 
 #### GGA
 
 | Key             | Description                                               |
 | --------------- | --------------------------------------------------------- |
-| *type*          | The type of satellite data received                       |
+| *type*          | *GPS_GGA*                                                 |
 | *time*          | The timestamp of received data (minutes, hours, seconds)  |
 | *latitude*      | The latitude received                                     |
 | *longitude*     | The longitude received                                    |
-| *status*        | The status of the satellite, "A" for active, "V" for void |
+| *status*        | The status of the satellite, `"A"` for active, `"V"` for void |
 | *fixQuality*    | The quality of the satellite fix                          |
 | *numSatellites* | The number of satellites being tracked                    |
 | *altitude*      | Altitude, meters, above mean sea level                    |
@@ -70,7 +63,7 @@ The second required parameter, *fixCallback*, will take two arguments. The first
 
 | Key             | Description                                               |
 | --------------- | --------------------------------------------------------- |
-| *type*          | The type of satellite data received                       |
+| *type*          | *GPS_GSV*                                                 |
 | *numSatellites  | The number of satellites in view                          |
 | *checkSum*      | Check sum, used to check the validity of the data         |
 
@@ -78,45 +71,47 @@ The second required parameter, *fixCallback*, will take two arguments. The first
 
 | Key             | Description                                                 |
 | --------------- | ----------------------------------------------------------- |
-| *type*          | The type of satellite data received                         |
+| *type*          | *GPS_GSA*                                                   |
 | *threeDFix*     | 3D fix - values include: 1 = no fix, 2 = 2D fix, 3 = 3D fix |
 | *PDOP*          | Dilution of precision                                       |
 | *HDOP*          | Horizontal dilution of precision                            |
 | *PDOP*          | Vertical dilution of precision                              |
 | *checkSum*      | Check sum, used to check the validity of the data           |
 
+#### Example
+
 ```squirrel
-function myCb(fix, tb) {
-    if(fix) {
-        server.log(format("I have valid %s data!", tb.type));
-        switch(tb.type) {
+function myCallback(gotFix, data) {
+    if (gotFix) {
+        server.log(format("I have valid %s data!", data.type));
+        switch(data.type) {
             case GPS_RMC:
-                // do something with RMC
+                // Do something with RMC data
                 break;
             case GPS_VTG: 
-                // do something with VTG
+                // Do something with VTG data
                 break;
             case GPS_GLL:
-                // do something with GLL
+                // Do something with GLL data
                 break;
             case GPS_GGA:
-                // do something with GGA
+                // Do something with GGA data
                 break;
             case GPS_GSV:
-                // do something with GSV
+                // Do something with GSV data
                 break;
             case GPS_GSA:
-                // do something with GSA
-                break;
+                // Do something with GSA data
         }
     }
 }
-myGPS <- GPS(hardware.uart1, myCb);
+
+myGPS <- GPS(hardware.uart1, myCallback);
 ```
 
 ### getLastLocation()
 
-The *getLastLocation()* method will return a table containing the last latitude and longitude and a table containing the time they were received.
+The *getLastLocation()* method will return a table containing the last detected latitude and longitude, and a table containing the time the co-ordinates were received.
 
 ```squirrel
 local last = myGPS.getLastLocation();
