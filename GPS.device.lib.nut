@@ -26,7 +26,7 @@ const GPS_GSA = "GPGSA";
 
 class GPS {
     
-    static VERSION = "1.0.0";
+    static VERSION = "1.0.1";
     static LINE_MAX = 150;
 
     _gps = null;
@@ -247,5 +247,5 @@ class GPS.Fields {
         if (dig2 > 9) dig2 -= 7;
         return dig1 + dig2;
     }
-    
+
 }

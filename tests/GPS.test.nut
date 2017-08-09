@@ -43,6 +43,8 @@ class GPSWrapper {
     }
 }
 
+// Tests written for an Imp005 Fieldbus Gateway with a GPS Click module in the MikroBus headers.
+
 class MyTestCase extends ImpTestCase {
 
     // for CA, USA
