@@ -1,7 +1,7 @@
 {
-    "modelId": "6aux07qRC5OH" /* Maps */,
+    "modelId": "nQR6QQYil3vh" /* Test Group D */,
     "devices": [
-        "5000d8c46a56d010" /* 5000d8c46a56d010 */
+        "5000d8c46a56cea4" /* P - 5000d8c46a56cea4 */
     ],
     "agentFile": false,
     "deviceFile": "GPS.device.lib.nut",
