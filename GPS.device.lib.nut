@@ -24,7 +24,84 @@ const GPS_GLL = "GPGLL";
 const GPS_GSV = "GPGSV";
 const GPS_GSA = "GPGSA";
 
-class GPSFields {
+class GPS {
+    
+    static VERSION = "0.1.0";
+    static LINE_MAX = 150;
+
+    _gps = null;
+    _fixCallback = null;
+
+    _gpsLine = "";
+    _lastTable = null;
+    _isValid = false;
+    _fix = false;
+
+    _lastLat = 0;
+    _lastLong = 0;
+    _lastTime = null;
+    
+    constructor(uart, fixCallback, baudrate = 9600) {
+        _gps = uart;
+        // GPS is configured by the constructor so that we can register
+        // the rxdata callback
+        _gps.configure(baudrate, 8, PARITY_NONE, 1, NO_CTSRTS, _gpsRxdata.bindenv(this));
+        _fixCallback = fixCallback;
+    }
+
+    function getLastLocation() {
+        return {
+            "latitude" : _lastLat,
+            "longitude" : _lastLong,
+            "time" : _lastTime
+        };
+    }
+
+    function _setLastLocation(tb) {
+        if (tb != null && tb.len() > 1) {
+            if (tb.type == GPS_GGA || tb.type == GPS_GLL || tb.type == GPS_RMC) { 
+                // VTG/GSV/GSA don't have latitude/longitude data
+                // Check for void data 
+                if ("status" in tb && tb.status == "Active" && _isValid) {
+                    _lastLat = tb.latitude;
+                    _lastLong = tb.longitude;
+                    _lastTime = tb.time;
+                }
+            }
+        }
+    }
+
+    // This private method is the uart callback. It continues to append characters
+    // to a line until it reaches a '$', indicating the start of a new line. Once it reaches this,
+    // it parses the previous line and calls callbacks (if provided), as well as setting
+    // values in the class that can be accessed (e.g. lat and long)
+    function _gpsRxdata() {
+        local ch = _gps.read();
+        if (ch  == '$') {
+            _lastTable = GPS.Fields.extractData(_gpsLine);
+            _isValid = ("checkSum" in _lastTable && (_lastTable.checkSum == GPS.Fields.calcCheckSum(_gpsLine)));
+
+            // Reset the string after a full line has been collected
+            _gpsLine = ""; 
+            
+            _setLastLocation(_lastTable);
+            
+            if (_lastTable.len() && _lastTable.type == GPS_GGA) {
+                _fix = ("fixQuality" in _lastTable && _lastTable.fixQuality.tointeger() > 0);
+            }
+
+            _fixCallback(_fix, _lastTable);
+
+        } else if (_gpsLine.len() > LINE_MAX) {
+            _gpsLine = "";
+        } else {
+            _gpsLine += ch.tochar();
+        }
+    }
+
+}
+
+class GPS.Fields {
 
     // Used to determine the validity of the data
     function calcCheckSum(sentence) {
@@ -59,6 +136,7 @@ class GPSFields {
     function extractData(sentence) {
         local retTable = {};
         local parsedFields = parseFields(sentence);
+
         if (parsedFields != null && parsedFields.len() > 0) {
             switch (parsedFields[0]) {
                 // Velocity made good
@@ -104,13 +182,25 @@ class GPSFields {
                     
                     retTable.status <- "Active";
                     retTable.fixQuality <- parsedFields[6];
-                    retTable.numSatellites <- parsedFields[7].tointeger();
-                    retTable.altitude <- parsedFields[9].tofloat();
+                    try {
+                        retTable.numSatellites <- parsedFields[7].tointeger();
+                    } catch (exception) {
+                        server.error(exception);
+                    }
+                    try {
+                        retTable.altitude <- parsedFields[9].tofloat();
+                    } catch (exception) {
+                        server.error(exception);
+                    }
                     break;
                 // Satellites in view
                 case GPS_GSV:
                     retTable.type <- GPS_GSV;
-                    retTable.numSatellites <- parsedFields[3].tointeger();
+                    try {
+                        retTable.numSatellites <- parsedFields[3].tointeger();
+                    } catch (exception) {
+                        server.error(exception);
+                    }
                     break;
                 // GPS DOP and active satellites
                 case GPS_GSA:
@@ -118,130 +208,73 @@ class GPSFields {
                     retTable.threeDFix <- parsedFields[2];
                     local len = parsedFields.len();
                     // need to use the len b/c we don't know the number of satellite PRNs
-                    retTable.PDOP <- parsedFields[len-4];
-                    retTable.HDOP <- parsedFields[len-3];
-                    retTable.VDOP <- parsedFields[len-2];
+                    retTable.PDOP <- parsedFields[len - 4];
+                    retTable.HDOP <- parsedFields[len - 3];
+                    retTable.VDOP <- parsedFields[len - 2];
                     break;
                 // return empty table if not a supported data type
                 default:
                     return {};
             }
+
             local checkLen = parsedFields[parsedFields.len() - 1].len();
-            retTable.checkSum <- _hexToDec(parsedFields[parsedFields.len()-1].slice(checkLen-4, checkLen-2));
+            retTable.checkSum <- _hexToDec(parsedFields[parsedFields.len() - 1].slice(checkLen - 4, checkLen - 2));
         }
-        
+
         return retTable;
     }
 
     // Get the latitude from strings. Store it in tb
     function _extractLat(str, direction) {
-        local lat = str.slice(0, 2).tofloat() + (str.slice(2).tofloat()/60);
-        if (direction == "S") lat = -lat;
-        return lat;
+        try {
+            local lat = str.slice(0, 2).tofloat() + (str.slice(2).tofloat() / 60);
+            if (direction == "S") lat = -lat;
+            return lat;
+        } catch (exception) {
+            server.error(exception);
+            return 0;
+        }
     }
 
     // Get the longitude from strings. Store it in tb
     function _extractLong(str, direction) {
-        local long = str.slice(0, 3).tofloat() + (str.slice(3).tofloat()/60);
-        if (direction == "W") long = -long;
-        return long;
+        try {
+            local long = str.slice(0, 3).tofloat() + (str.slice(3).tofloat() / 60);
+            if (direction == "W") long = -long;
+            return long;
+        } catch (exception) {
+            server.error(exception);
+            return 0;
+        }
     }
 
     // Get the time from a string. Store it in tb
     function _extractTime(str) {
-        local time = str.tointeger();
-        local timeTable = {};
-        timeTable.seconds <- time%100;
-        time = time/100;
-        timeTable.minutes <- time%100;
-        time = time/100;
-        timeTable.hours <- time; 
-        return timeTable;
+        try {
+            local time = str.tointeger();
+            local timeTable = {};
+            timeTable.seconds <- time % 100;
+            time = time / 100;
+            timeTable.minutes <- time % 100;
+            time = time / 100;
+            timeTable.hours <- time; 
+            return timeTable;
+        } catch (exception) {
+            server.error(exception);
+            return null;
+        }
+        
     }
     
     // For converting the character checkSum provided by satellite data to an integer
     function _hexToDec(checkSum) {
-        local dig1 = (checkSum[0] - '0');
-        if (dig1 > 9) dig1 -= 7;
-        dig1 *= 16;
-        local dig2 = (checkSum[1] - '0');
-        if (dig2 > 9) dig2 -= 7;
-        return dig1 + dig2;
-    }
-}
-
-
-
-class GPS {
-    
-    static VERSION = "1.0.0";
-
-    _gpsLine = "";
-    _gps = null;
-    _lastTable = null;
-    _lastLat = 0;
-    _lastLong = 0;
-    _lastTime = null;
-    _isValid = false;
-    _fix = false;
-    _fixCallback = null;
-
-    static LINE_MAX = 150;
-    
-    constructor(uart, fixCallback, baudrate=9600) {
-        _gps = uart;
-        // GPS is configured by the constructor so that we can register
-        // the rxdata callback
-        _gps.configure(baudrate, 8, PARITY_NONE, 1, NO_CTSRTS, _gpsRxdata.bindenv(this));
-        _fixCallback = fixCallback;
-    }
-
-    function getLastLocation() {
-        return {
-            "latitude" : _lastLat,
-            "longitude" : _lastLong,
-            "time" : _lastTime
-        };
-    }
-
-    function _setLastLocation(tb) {
-        if (tb != null && tb.len() > 1) {
-            if (tb.type == GPS_GGA || tb.type == GPS_GLL || tb.type == GPS_RMC) { // VTG/GSV/GSA don't have
-            // latitude/longitude data
-                // Check for void data 
-                if ("status" in tb && tb.status == "Active" && _isValid) {
-                    _lastLat = tb.latitude;
-                    _lastLong = tb.longitude;
-                    _lastTime = tb.time;
-                }
-            }
+        local i = 0;
+        foreach(c in hs) {
+            local n = c - '0';
+            if (n > 9) n = ((n & 0x1F) -7);
+            i = (i << 4) + n;
         }
+        return i;
     }
-    // This private method is the uart callback. It continues to append characters
-    // to a line until it reaches a '$', indicating the start of a new line. Once it reaches this,
-    // it parses the previous line and calls callbacks (if provided), as well as setting
-    // values in the class that can be accessed (e.g. lat and long)
-    function _gpsRxdata() {
-        local ch = _gps.read()
-        if (ch  == '$') {
-            _lastTable = GPSFields.extractData(_gpsLine);
-            _isValid = ("checkSum" in _lastTable && (_lastTable.checkSum == GPSFields.calcCheckSum(_gpsLine)));
-            
-            _gpsLine = ""; // Reset the string after a full line has been
-            // collected
-            
-            _setLastLocation(_lastTable);
-            
-            if (_lastTable.len() && _lastTable.type == GPS_GGA) {
-                _fix = ("fixQuality" in _lastTable && _lastTable.fixQuality.tointeger() > 0);
-            }
 
-            _fixCallback(_fix, _lastTable);
-
-        } else if (_gpsLine.len() > LINE_MAX) {
-            _gpsLine = "";
-        } else {
-            _gpsLine += ch.tochar();
-        }
-    }
 }

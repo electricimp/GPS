@@ -59,8 +59,6 @@ class MyTestCase extends ImpTestCase {
 		return GPS(hardware.uart1, cb);
 	}
 
-	
-
 	function testCoordinates() {
 		return Promise(function(resolve, reject) {
 			local myGPS = getGPS(function(fix, tb) {
@@ -118,25 +116,4 @@ class MyTestCase extends ImpTestCase {
 		local wrap = GPSWrapper();
 		return Promise(wrap.myPromiseCb.bindenv(this));
 	}	
-
-	function testNoFix() {
-		return Promise(function(resolve, reject) {
-			imp.wakeup(FIX_TIMEOUT, function() {
-				resolve("could not test no fix because fix was always obtained");
-			}.bindenv(this));
-			local myGPS = getGPS(function(fix, tb) {
-				if(!fix) {
-					// make sure there is no fix because there were no satellites
-					if("fixQuality" in tb) {
-						if(!(tb.fixQuality.tointeger())) {
-							resolve("data correctly reported no fix");
-						} else {
-							reject("data incorrectly reported no fix");
-						}
-					}
-				}
-			}.bindenv(this));
-		}.bindenv(this));
-	}
-
 }
