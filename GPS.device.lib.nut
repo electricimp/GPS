@@ -268,7 +268,7 @@ class GPS.Fields {
     // For converting the character checkSum provided by satellite data to an integer
     function _hexToDec(checkSum) {
         local i = 0;
-        foreach(c in hs) {
+        foreach(c in checkSum) {
             local n = c - '0';
             if (n > 9) n = ((n & 0x1F) -7);
             i = (i << 4) + n;
