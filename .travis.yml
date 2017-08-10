@@ -1,0 +1,11 @@
+
+language: node_js
+
+node_js:
+  - '6.6'
+
+before_script:
+  - npm i -g imptest@latest
+
+script:
+  - imptest test

@@ -263,7 +263,6 @@ class GPS.Fields {
             server.error(exception);
             return null;
         }
-        
     }
     
     // For converting the character checkSum provided by satellite data to an integer
@@ -276,5 +275,4 @@ class GPS.Fields {
         }
         return i;
     }
-
 }
