@@ -1,0 +1,12 @@
+{
+  "deviceGroupId": "d51fc3f4-f818-f7e9-8a93-a7e392a9480d",
+  "timeout": 30,
+  "stopOnFail": false,
+  "allowDisconnect": false,
+  "builderCache": false,
+  "testFiles": [
+    "*.test.nut",
+    "tests/**/*.test.nut"
+  ],
+  "deviceFile": "GPS.device.lib.nut"
+}
