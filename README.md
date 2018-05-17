@@ -222,10 +222,10 @@ Returns a string with the last known longitude value in decimal degrees. If no l
 ##### Example
 
 ```squirrel
-`#require "GPSParser.device.lib.nut:1.0.0"`
-`#require "GPSUARTDriver.device.lib.nut:1.0.0"`
+#require "GPSParser.device.lib.nut:1.0.0"
+#require "GPSUARTDriver.device.lib.nut:1.0.0"
 
-class Tracker {
+class LocationLogger {
     gps = null;
 
     constructor() {
@@ -243,7 +243,7 @@ class Tracker {
         }
 }
 
-Tracker();
+LocationLogger();
 ```
 
 ## License
