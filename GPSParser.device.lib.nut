@@ -26,7 +26,7 @@ const GPSParser_GSV = "GSV";
 const GPSParser_GSA = "GSA";
 
 // GPS Parser errors
-const GPSParser_UNEXPECTED_FIELDS_ERROR = "Unexpected number of field found.";
+const GPSParser_UNEXPECTED_FIELDS_ERROR = "Unexpected number of fields found.";
 const GPSParser_INVALID_SENTENCE_ERROR  = "Check sum not valid.";
 const GPSParser_UNSUPPORTED_TYPE        = "Sentence Id not supported.";
 const GPSParser_LL_PARSING_ERROR        = "Error parsing Latitude/Longitude field.";

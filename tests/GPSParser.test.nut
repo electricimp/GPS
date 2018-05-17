@@ -69,7 +69,7 @@ class GPSParserTests extends ImpTestCase {
         // Check that first field is the talker and sentence id
         assertTrue(a[0].len() == 5);
         assertEqual(a[0].slice(0,2), "GP");
-        assertEqual(a[0].slic(2), "RMC");
+        assertEqual(a[0].slice(2), "RMC");
 
         // Check that last field is the checksum
         assertEqual(b, "78");
@@ -211,10 +211,8 @@ class GPSParserTests extends ImpTestCase {
         local tooLong = GPSParser.getGPSDataTable("$GPGLL,,,,,,,,,,V,N\r\n");
         assertEqual(tooLong.error, GPSParser_UNEXPECTED_FIELDS_ERROR);
         local latErr = GPSParser.getGPSDataTable("$GNGLL,3723.71U22,N,12206.14081,W,181858.00,A,A*67\r\n");
-        assertEqual(latErr.longitude, "-122.102348");
         assertEqual(latErr.error, GPSParser_LL_PARSING_ERROR);
         local lngErr = GPSParser.getGPSDataTable("$GNGLL,3723.71722,N,122Z6.14081,W,181858.00,A,A*67\r\n");
-        assertEqual(lngErr.latitude, "37.395287");
         assertEqual(lngErr.error, GPSParser_LL_PARSING_ERROR);
     }
 
@@ -238,9 +236,9 @@ class GPSParserTests extends ImpTestCase {
         data = GPSParser.getGPSDataTable(GPS_SENTENCE_GGA_CHECKSUM_EMPTY);
         assertEqual(data.talkerId, "GP");
         assertEqual(data.sentenceId, "GGA");
-        assertEqual(!("time" in data));
-        assertEqual(!("latitude" in data));
-        assertEqual(!("longitude" in data));
+        assertTrue(!("time" in data));
+        assertTrue(!("latitude" in data));
+        assertTrue(!("longitude" in data));
         assertEqual(data.fixQuality, "0");
         assertEqual(data.numSatellites, "00");
         assertEqual(data.HDOP, "99.99");
@@ -316,7 +314,7 @@ class GPSParserTests extends ImpTestCase {
         assertTrue(!("azimuth" in satInfo[0]));
         assertEqual(satInfo[0].snr, "18");
 
-        local csInvalid = GPSParser.getGPSDataTable("$GPGSV,1,1,01,22,,,18*51\r\n");
+        local csInvalid = GPSParser.getGPSDataTable("$GPGSV,1,1,01,22,,,18*77\r\n");
         assertEqual(csInvalid.error, GPSParser_INVALID_SENTENCE_ERROR);
         local tooShort = GPSParser.getGPSDataTable("$GPGSV,1,1,01,22,,18*71\r\n");
         assertEqual(tooShort.error, GPSParser_UNEXPECTED_FIELDS_ERROR);
@@ -361,7 +359,7 @@ class GPSParserTests extends ImpTestCase {
         assertEqual(typeof data.satellitePRNs, "array");
         assertEqual(data.satellitePRNs.len(), 7);
 
-        local csInvalid = GPSParser.getGPSDataTable("GNGSA,A,3,30,07,08,05,11,13,18,,,s,,,1.45,0.97,1.08*19");
+        local csInvalid = GPSParser.getGPSDataTable("$GNGSA,A,3,30,07,08,05,11,13,18,,,,,,1.45,0.97,1.08*10\r\n");
         assertEqual(csInvalid.error, GPSParser_INVALID_SENTENCE_ERROR);
         local tooShort = GPSParser.getGPSDataTable("$GPGSA,A,1,,,,,,,,,,99.99,99.99,99.99*30\r\n");
         assertEqual(tooShort.error, GPSParser_UNEXPECTED_FIELDS_ERROR);
