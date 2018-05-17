@@ -178,9 +178,9 @@ class GPSParserTests extends ImpTestCase {
         local csInvalid = GPSParser.getGPSDataTable("$GNRMC,181859,A,3723.71721,N,12206.14085,W,0.140,,090518,,,A*78\r\n");
         assertEqual(GPSParser_INVALID_SENTENCE_ERROR, csInvalid.error);
         local tooShort = GPSParser.getGPSDataTable("$GNRMC,181859.00,A,3723.71721,N,12206.14085,W,0.140,,090518,A\r\n");
-        assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, csInvalid.error);
+        assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooShort.error);
         local tooLong = GPSParser.getGPSDataTable("$GPRMC,,V,,,,,,,,,,,,,,N\r\n");
-        assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, csInvalid.error);
+        assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooLong.error);
     }
 
     function testGetGPSDataTableGLL() {
@@ -210,9 +210,9 @@ class GPSParserTests extends ImpTestCase {
         assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooShort.error);
         local tooLong = GPSParser.getGPSDataTable("$GPGLL,,,,,,,,,,V,N\r\n");
         assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooLong.error);
-        local latErr = GPSParser.getGPSDataTable("$GNGLL,W3723.71722,N,12206.14081,W,181858.00,A,A\r\n");
+        local latErr = GPSParser.getGPSDataTable("$GNGLL,LATT,N,12206.14081,W,181858.00,A,A\r\n");
         assertEqual(GPSParser_LL_PARSING_ERROR, latErr.error);
-        local lngErr = GPSParser.getGPSDataTable("$GNGLL,3723.71722,N,R12206.14081,W,181858.00,A,A\r\n");
+        local lngErr = GPSParser.getGPSDataTable("$GNGLL,3723.71722,N,LONG,W,181858.00,A,A\r\n");
         assertEqual(GPSParser_LL_PARSING_ERROR, lngErr.error);
     }
 

@@ -150,12 +150,12 @@ class GPSParser {
                     if (fields[3]  != "" && fields[4]  != "") {
                         // 4807.038  N
                         local lat = parseLatitude(fields[3], fields[4]);
-                        data.latitude <- (lat == null) ? GPSParser_LL_PARSING_ERROR : lat;
+                        (lat == null) ? data.error <- GPSParser_LL_PARSING_ERROR : data.latitude <- lat;
                     }
                     if (fields[5]  != "" && fields[6]  != "") {
                         // 01131.000 E
                         local lng = parseLongitude(fields[5], fields[6]);
-                        data.longitude <- (lng == null) ? GPSParser_LL_PARSING_ERROR : lng;
+                        (lng == null) ? data.error <- GPSParser_LL_PARSING_ERROR : data.longitude <- lng;
                     }
                     // A=autonomous, D=differential, E=Estimated, N=not valid, S=Simulator
                     if (dataLen == 13 && fields[12] != "") data.modeIndicator <- fields[12];
@@ -176,12 +176,12 @@ class GPSParser {
                     if (fields[1]  != "" && fields[2]  != "") {
                         // 4807.038  N
                         local lat = parseLatitude(fields[1], fields[2]);
-                        data.latitude <- (lat == null) ? GPSParser_LL_PARSING_ERROR : lat;
+                        (lat == null) ? data.error <- GPSParser_LL_PARSING_ERROR : data.latitude <- lat;
                     }
                     if (fields[3]  != "" && fields[4]  != "") {
                         // 01131.000 E
                         local lng = parseLongitude(fields[3], fields[4]);
-                        data.longitude <- (lng == null) ? GPSParser_LL_PARSING_ERROR : lng;
+                        (lng == null) ? data.error <- GPSParser_LL_PARSING_ERROR : data.longitude <- lng;
                     }
                     // A=autonomous, D=differential, E=Estimated, N=not valid, S=Simulator
                     if (dataLen == 8 && fields[7] != "") data.modeIndicator <- fields[7];
@@ -208,12 +208,12 @@ class GPSParser {
                     if (fields[2]  != "" && fields[3]  != "") {
                         // 4807.038  N
                         local lat = parseLatitude(fields[2], fields[3]);
-                        data.latitude <- (lat == null) ? GPSParser_LL_PARSING_ERROR : lat;
+                        (lat == null) ? data.error <- GPSParser_LL_PARSING_ERROR : data.latitude <- lat;
                     }
                     if (fields[4]  != "" && fields[5]  != "") {
                         // 01131.000 E
                         local lng = parseLongitude(fields[4], fields[5]);
-                        data.longitude <- (lng == null) ? GPSParser_LL_PARSING_ERROR : lng;
+                        (lng == null) ? data.error <- GPSParser_LL_PARSING_ERROR : data.longitude <- lng;
                     }
                 } else {
                     data.error <- GPSParser_UNEXPECTED_FIELDS_ERROR;
