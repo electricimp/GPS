@@ -81,12 +81,12 @@ class GPSParserTests extends ImpTestCase {
     }
 
     function testIsValid() {
-        // // Data with no check sum returns true
-        // assertTrue(GPSParser.isValid(GPS_SENTENCE_NO_CHECKSUM));
-        // // Data with valid check sum returns true
-        // assertTrue(GPSParser.isValid(GPS_SENTENCE_GSV_CHECKSUM_LG_M_PT2));
-        // // Invalid data returns false
-        // assertTrue(GPSParser.isValid(!GPS_CHECKSUM_INCORRECT));
+        // Data with no check sum returns true
+        assertTrue(GPSParser.isValid(GPS_SENTENCE_NO_CHECKSUM));
+        // Data with valid check sum returns true
+        assertTrue(GPSParser.isValid(GPS_SENTENCE_GSV_CHECKSUM_LG_M_PT2));
+        // Invalid data returns false
+        assertTrue(!GPSParser.isValid(GPS_CHECKSUM_INCORRECT));
     }
 
     function testParseLatitude() {
@@ -151,7 +151,7 @@ class GPSParserTests extends ImpTestCase {
         data = GPSParser.getGPSDataTable(GPS_SENTENCE_RMC_CHECKSUM_EMPTY_MI);
         assertEqual(data.talkerId, "GP");
         assertEqual(data.sentenceId, "RMC");
-        assertEqual(status, "V");
+        assertEqual(data.status, "V");
         assertEqual(data.modeIndicator, "N");
         assertTrue(!("time" in data));
         assertTrue(!("date" in data));
@@ -210,9 +210,9 @@ class GPSParserTests extends ImpTestCase {
         assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooShort.error);
         local tooLong = GPSParser.getGPSDataTable("$GPGLL,,,,,,,,,,V,N\r\n");
         assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooLong.error);
-        local latErr = GPSParser.getGPSDataTable("$GNGLL,3723.71U22,N,12206.14081,W,181858.00,A,A\r\n");
+        local latErr = GPSParser.getGPSDataTable("$GNGLL,W3723.71722,N,12206.14081,W,181858.00,A,A\r\n");
         assertEqual(GPSParser_LL_PARSING_ERROR, latErr.error);
-        local lngErr = GPSParser.getGPSDataTable("$GNGLL,3723.71722,N,122Z6.14081,W,181858.00,A,A\r\n");
+        local lngErr = GPSParser.getGPSDataTable("$GNGLL,3723.71722,N,R12206.14081,W,181858.00,A,A\r\n");
         assertEqual(GPSParser_LL_PARSING_ERROR, lngErr.error);
     }
 
