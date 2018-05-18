@@ -23,7 +23,8 @@ GPSParser has no constructor. There is no need to create an instance. All method
 
 Takes a GPS sentence and returns an array of data fields. The first item in the array will always be the talker/sentence identifier. All data fields will be included even if they only contain an empty string. If the sentence included a check sum this will be the last item in the array.
 
-```
+##### Example
+```squirrel
 local sentence = "$GPGGA,,,,,,0,00,99.99,,,,,,*48\r\n";
 local fields = GPSParser.getFields(sentence);
 foreach (idx, item in fields) {
@@ -35,7 +36,8 @@ foreach (idx, item in fields) {
 
 Takes a GPS sentence and returns a boolean, `true` if the sentence contains a check sum value, `false` otherwise.
 
-```
+##### Example
+```squirrel
 local sentence = "$GPVTG,054.7,T,034.4,M,005.5,N,010.2,K*48\r\n";
 local hasChecksum = GPSParser.hasCheckSum(sentence);
 if (hasChecksum) {
@@ -48,7 +50,8 @@ if (hasChecksum) {
 
 Takes a GPS sentence and returns a boolean, `true` if the check sum in the sentence matches the check sum calculated for that sentence, `false` otherwise.
 
-```
+##### Example
+```squirrel
 local sentence = "$GPGLL,4916.45,N,12311.12,W,225444,A,*1D\r\n";
 if (GPSParser.isValid(sentence)) {
     server.log("GPS sentence check sum is valid.");
@@ -64,7 +67,7 @@ Takes a GPS sentence and returns a table. This method does not support all data 
 | Key             | Data Type | Description                                                     |
 | --------------- | --------- | --------------------------------------------------------------- |
 | *talkerId*      | String    | Talker identifier, ie "GP", "GN"                                |
-| *sentenceId*    | String    | Sentence identifier - "VTG" or class constant *GPSParser_VTG*   |
+| *sentenceId*    | String    | Sentence identifier - "VTG" or class constant *GPS_PARSER_VTG*  |
 | *tTrack*        | String    | True track made good (degrees)                                  |
 | *mTrack*        | String    | Magnetic track made good                                        |
 | *speedKnots*    | String    | Ground speed, knots                                             |
@@ -77,7 +80,7 @@ Takes a GPS sentence and returns a table. This method does not support all data 
 | Key             | Data Type | Description                                                     |
 | --------------- | --------- | --------------------------------------------------------------- |
 | *talkerId*      | String    | Talker identifier, ie "GP", "GN"                                |
-| *sentenceId*    | String    | Sentence identifier - "RMC" or class constant *GPSParser_RMC*   |
+| *sentenceId*    | String    | Sentence identifier - "RMC" or class constant *GPS_PARSER_RMC*  |
 | *time*          | String    | UTC Time fix taken at "hhmmss"                                  |
 | *date*          | String    | Date fix taken at "ddmmyy"                                      |
 | *speedKnots*    | String    | Speed over the ground in knots                                  |
@@ -94,7 +97,7 @@ Takes a GPS sentence and returns a table. This method does not support all data 
 | Key             | Data Type | Description                                                     |
 | --------------- | --------- | --------------------------------------------------------------- |
 | *talkerId*      | String    | Talker identifier, ie "GP", "GN"                                |
-| *sentenceId*    | String    | Sentence identifier - "GLL" or class constant *GPSParser_GLL*   |
+| *sentenceId*    | String    | Sentence identifier - "GLL" or class constant *GPS_PARSER_GLL*  |
 | *time*          | String    | UTC Time fix taken at "hhmmss"                                  |
 | *status*        | String    | The status of the satellite, A=active or V=Void                 |
 | *latitude*      | String    | The latitude received in decimal degrees                        |
@@ -107,7 +110,7 @@ Takes a GPS sentence and returns a table. This method does not support all data 
 | Key             | Data Type | Description                                                     |
 | --------------- | --------- | --------------------------------------------------------------- |
 | *talkerId*      | String    | Talker identifier, ie "GP", "GN"                                |
-| *sentenceId*    | String    | Sentence identifier - "GGA" or class constant *GPSParser_GGA*   |
+| *sentenceId*    | String    | Sentence identifier - "GGA" or class constant *GPS_PARSER_GGA*  |
 | *time*          | String    | UTC Time fix taken at "hhmmss"                                  |
 | *latitude*      | String    | The latitude received in decimal degrees                        |
 | *longitude*     | String    | The longitude received in decimal degrees                       |
@@ -125,7 +128,7 @@ Takes a GPS sentence and returns a table. This method does not support all data 
 | Key             | Data Type | Description                                                     |
 | --------------- | --------- | --------------------------------------------------------------- |
 | *talkerId*      | String    | Talker identifier, ie "GP", "GN"                                |
-| *sentenceId*    | String    | Sentence identifier - "GSV" or class constant *GPSParser_GSV*   |
+| *sentenceId*    | String    | Sentence identifier - "GSV" or class constant *GPS_PARSER_GSV*  |
 | *numMsgs*       | String    | Total number of messages                                        |
 | *msgNum*        | String    | Message number                                                  |
 | *numSatellites* | String    | Number of satellites in view                                    |
@@ -137,7 +140,7 @@ Takes a GPS sentence and returns a table. This method does not support all data 
 | Key             | Data Type | Description                                                     |
 | --------------- | --------- | --------------------------------------------------------------- |
 | *talkerId*      | String    | Talker identifier, ie "GP", "GN"                                |
-| *sentenceId*    | String    | Sentence identifier - "GSA" or class constant *GPSParser_GSA*   |
+| *sentenceId*    | String    | Sentence identifier - "GSA" or class constant *GPS_PARSER_GSA*  |
 | *selMode*       | String    | Selection mode A=Auto, M=Manual                                 |
 | *mode*          | String    | Mode,  1=no fix, 2=2D fix, 3=3D fix                             |
 | *satellitePRNs* | Array     | PRNs (Ids) of satellites used for fix                           |
@@ -146,11 +149,11 @@ Takes a GPS sentence and returns a table. This method does not support all data 
 | *VDOP*          | String    | Vertical dilution of precision                                  |
 | *error*         | String    | Error discription                                               |
 
-
-```
+##### Example
+```squirrel
 local sentence = "$GPGLL,4916.45,N,12311.12,W,225444,A,*1D\r\n";
 local gpsData = GPSParser.getGPSDataTable(sentence);
-if gpsData.sentenceId == GPSParser_GLL) {
+if gpsData.sentenceId == GPS_PARSER_GLL) {
     server.log("GLL msg received.");
     if (gpsData.status == "A" && "latitude" in gpsData && "longitude" in gpsData) {
         server.log(format("Latitude %s, Longitude %s", gpsData.latitude, gpsData.longitude));
@@ -169,11 +172,12 @@ Takes the 2 latitude fields from the GPS sentence, the numeric degree decimal mi
 
 Takes the 2 longitude fields from the GPS sentence, the numeric degree decimal minutes string and the direction letter, and returns a string containing the longitude in decimal degrees.
 
-```
+##### Example
+```squirrel
 local sentence = "$GNGGA,181859.00,3723.71721,N,12206.14085,W,1,12,0.97,38.0,M,-30.0,M,,*4C\r\n";
 local fields = GPSParser.getFields(sentence);
 local type = fields[0].slice(2);
-if (type == GPSParser_GGA) {
+if (type == GPS_PARSER_GGA) {
     // Get Latitude
     if (fields[2]  != "" && fields[3]  != "") {
         local lat = parseLatitude(fields[2], fields[3]);
@@ -190,60 +194,73 @@ if (type == GPSParser_GGA) {
 
 ## GPSUARTDriver
 
-This library is a driver class for GPS modules that can be interfaced over UART. It has been tested on UBlox NEO-M8N and UBlox LEA-6S modules. The driver must be used with the GPSParser library, and only supports VTG, RMC, GLL, GGA, GSV and GSA formats.
+This library is a driver class for GPS modules that can be interfaced over UART. It has been tested on UBlox NEO-M8N and UBlox LEA-6S modules.
 
-**To use this library in your project, add**
-`#require "GPSParser.device.lib.nut:1.0.0"`
-`#require "GPSUARTDriver.device.lib.nut:1.0.0"`
-**to the top of your device code.**
+Note: The class methods *hasFix*, *getLatitude*, *getLongitude*, and the *parseData* option are dependent on the GPSParser library. If the GPSParser is not detected the class methods will return an error string, and the *parseData* option will default to `false`.
+
+**To use this library in your project, add** `#require "GPSUARTDriver.device.lib.nut:1.0.0"` **to the top of your device code.**
 
 ### Class Usage
 
-#### Constructor: GPSParser(*uart[, baudrate][, dataReadyCallback]*)
+#### Constructor: GPSUARTDriver(*uart[, options]*)
 
-The constructor takes one required parameter and two optional parameters. The first parameter (required), *uart*, is an imp UART bus which will be configured by the constructor. The second parameter (optional), *baudrate*, is the baud rate the UART will be configured with. If no value is passed in *baudrate* will default to 9600. The third paramter (optional), *dataReadyCallback*, is a function that will be called whenever new GPS data is received.
+The constructor takes one required parameter and one optional parameter. The first parameter (required), *uart*, is an imp UART bus which will be configured by the constructor. The second parameter (optional), *options*, is a table with settings to override default behaviours. The *options* table may contain any of the following keys:
 
-The *dataReadyCallback* callback takes two required paramters: a boolean *hasActiveLocation* indicating whether the GPS currently has a fix and location data, and a table *gpsData* containing the most recent GPS data. See *GPSParser.getGPSDataTable* method description above for details on the *gpsData* table.
+| Key             | Data Type | Defaut      | Description                                                                |
+| --------------- | --------- | ----------- |--------------------------------------------------------------------------- |
+| *baudRate*      | Integer   | 9600        | The baud rate used to configure the UART                                   |
+| *wordSize*      | Integer   | 8           | The word size in bits (7 or 8) used to configure the UART                  |
+| *parity*        | Integer   | PARITY_NONE | Parity (PARITY_NONE, PARITY_EVEN or PARITY_ODD) used to configure the UART |
+| *stopBits*      | Integer   | 1           | Stop bits (1 or 2) used to configure the UART                              |
+| *gspDataReady*  | Function  | `null`      | Callback that is called when new GPS sentence is received. The callback takes two required paramters: a boolean *hasActiveLocation* indicating whether the GPS sentence has active location data, and *gpsData*, either the GPS sentence or a table with parsed GPS data. |
+| *parseData*     | Boolean   | `false`     | If `false` the unparsed GPS sentence will be passed to the *gspDataReady* callback's *gpsData* parameter. If `true` and the GPSParser library is detected the *gpsData* parameter will contain the table returned by *GPSParser.getGPSDataTable* method. |
 
 ### Class Methods
 
 #### hasFix()
 
-Returns a boolean `true` if the GPS moduled has enough data to get a fix on the devices location, `false` otherwirse.
+If the GPSParser library is detected this method returns a boolean: `true` if the GPS moduled has enough data to get a fix on the devices location, `false` otherwise. If the parser is not detected then this method will return an error string.
 
 #### getLatitude()
 
-Returns a string with the last known latitude value in decimal degrees. If no latitude has been found this method will return `null`.
+If the GPSParser library is detected this method returns a string with the last known latitude value in decimal degrees. If no latitude has been found this method will return `null`. If the parser is not detected then this method will return an error string.
 
 #### getLongitude()
 
-Returns a string with the last known longitude value in decimal degrees. If no longitude has been found this method will return `null`.
+If the GPSParser library is detected this method returns a string with the last known longitude value in decimal degrees. If no longitude has been found this method will return `null`. If the parser is not detected then this method will return an error string.
+
+#### getGPSSentence()
+
+Returns a string with the last GPS sentence.
 
 ##### Example
-
 ```squirrel
 #require "GPSParser.device.lib.nut:1.0.0"
 #require "GPSUARTDriver.device.lib.nut:1.0.0"
 
-class LocationLogger {
-    gps = null;
+// Create GPS variable
+gps <- null;
 
-    constructor() {
-        gps = GPSUARTDriver(hardware.uart1, gpsHandler.bindenv(this));
+// GPS callback
+function gpsHandler(hasLoc, data) {
+    // Log location or GPS sentence
+    if (hasLoc) {
+        server.log(format("Latitude: %s, Longitude: %s", gps.getLatitude(), gps.getLongitude()));
+    } else {
+        server.log(gps.getGPSSentence());
     }
 
-    function gpsHandler(hasLoc, data) {
-            if (hasLoc) {
-                server.log(format("Latitude: %s, Longitude: %s", gps.getLatitude(), gps.getLongitude()));
-                server.log(gps.getLatitude());
-                server.log(gps.getLongitude());
-            } else if (!gps.hasFix() && "numSatellites" in data) {
-                server.log("Satellites: " + data.numSatellites);
-            }
-        }
+    // If we don't have a fix log number of satellites in view
+    if (!gps.hasFix() && "numSatellites" in data) {
+        server.log(format("Number of satellites: %s", data.numSatellites));
+    }
 }
 
-LocationLogger();
+// GPS options
+gpsOpts <- {"gspDataReady" : gpsHandler, "parseData" : true};
+
+// Initialize GPS UART driver
+gps = GPSUARTDriver(hardware.uart1, gpsOpts);
 ```
 
 ## License

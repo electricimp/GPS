@@ -1,5 +1,5 @@
 // MIT License
-// Copyright 2017-18 Electric Imp
+// Copyright 2017-8 Electric Imp
 // SPDX-License-Identifier: MIT
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -17,94 +17,166 @@
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-// Driver for UART GPS modules. This driver is dependant on the GPSParser class.
-// This driver is focused on retrieving location data and returns data from the
-// GPSParser.getGPSDataTable method. Currently only the data with sentence IDs
-// VTG, RMC, GLL, GGA, GSV and GSA are supported.
 class GPSUARTDriver {
 
+    static VERSION = "1.0.0";
+
     function _statics_() {
-        const VERSION          = "1.0.0";
-        const LINE_MAX         = 150;
-        const DEFAULT_BAUDRATE = 9600;
+        const LINE_MAX          = 150;
+        const DEFAULT_BAUD_RATE = 9600;
+        const DEFAULT_WORD_SIZE = 8;
+        const DEFAULT_STOP_BITS = 1;
+        const CARRIAGE_RETURN   = 0x0D;
+        const LINE_FEED         = 0x0A;
+        const ERROR_NO_PARSER   = "No GPS parser found. Cannot parse GPS data.";
     }
 
-    _gps            = null;
-    _gpsLine        = null;
-    _callback       = null;
+    _gps          = null;
+    _gpsLine      = null;
+    _parseData    = null;
+    _callback     = null;
 
-    _hasFix         = null;
-    _lastLat        = null;
-    _lastLong       = null;
+    _collectData  = null;
+    _hasGPSParser = null;
 
-    constructor(uart, baudrate = null, dataReady = null) {
-        _gps     = uart;
-        _hasFix  = false;
-        _gpsLine = "";
+    _hasFix       = null;
+    _lastLat      = null;
+    _lastLong     = null;
+    _lastSentence = null;
 
-        // Check optional params
-        if (typeof baudrate == "function") {
-            _callback = baudrate;
-            baudrate = DEFAULT_BAUDRATE;
-        } else if (baudrate == null) {
-            baudrate = DEFAULT_BAUDRATE;
-            _callback = dataReady;
+    constructor(uart, opts = {}) {
+        _gps          = uart;
+        _hasFix       = false;
+        _gpsLine      = "";
+        _collectData  = false;
+        _hasGPSParser = ("GPSParser" in getroottable());
+
+        local baudRate = ("baudRate" in opts) ? opts.baudRate : DEFAULT_BAUD_RATE;
+        local wordSize = ("wordSize" in opts) ? opts.wordSize : DEFAULT_WORD_SIZE;
+        local stopBits = ("stopBits" in opts) ? opts.stopBits : DEFAULT_STOP_BITS;
+        local parity = ("parity" in opts) ? opts.parity : PARITY_NONE;
+        if ("gspDataReady" in opts) _callback = opts.gspDataReady;
+        if (_hasGPSParser) {
+            _parseData = ("parseData" in opts) ? opts.parseData : true;
         } else {
-            _callback = dataReady;
+            _parseData = false;
         }
 
         // GPS is configured by the constructor so that we can register the rxdata callback
-        _gps.configure(baudrate, 8, PARITY_NONE, 1, NO_CTSRTS, _gpsRxData.bindenv(this));
+        _gps.configure(baudRate, wordSize, parity, stopBits, NO_CTSRTS, _uartHandler.bindenv(this));
     }
 
+    // Returns true if last GPS data received has an active fix
     function hasFix() {
+        if (!_hasGPSParser) return ERROR_NO_PARSER;
         return _hasFix;
     }
 
+    // Returns last received latitude
     function getLatitude() {
+        if (!_hasGPSParser) return ERROR_NO_PARSER;
         return _lastLat;
     }
 
+    // Returns last received longitude
     function getLongitude() {
+        if (!_hasGPSParser) return ERROR_NO_PARSER;
         return _lastLong;
     }
 
-    // This private method is the uart callback. It continues to append characters
-    // to a line until it reaches a '$', indicating the start of a new line. Once it reaches this,
-    // it parses the previous line and calls callbacks (if provided), as well as setting
-    // values in the class that can be accessed (e.g. lat and long)
-    function _gpsRxData() {
-        local ch = _gps.read();
-        if (ch  == '$') {
-            // Parse GPS sentence
-            local fields = GPSParser.getGPSDataTable(_gpsLine);
-            // A full line has been collected, Start next _gpsLine
-            _gpsLine = "$";
+    // Returns last received GPS sentence
+    function getGPSSentence() {
+        return _lastSentence;
+    }
 
-            // Update stored _hasFix
-            _hasFix = _isStatusActive(fields);
-            local hasActiveLoc = (_hasFix && _hasLocation(fields));
-            // Update last stored location
-            if (hasActiveLoc) {
-                _lastLat  = fields.latitude;
-                _lastLong = fields.longitude;
-            }
-
-            // Pass Location data to callback
-            if (_callback != null) _callback(hasActiveLoc, fields);
-        } else if (_gpsLine.len() > LINE_MAX) {
-            _gpsLine = "$";
-        } else {
-            _gpsLine += ch.tochar();
+    // UART callback reads data one byte at a time
+    // and if byte is valid data passes it _processByte
+    function _uartHandler() {
+        local byte;
+        while ((byte = _gps.read()) > -1) {
+            _processByte(byte);
         }
     }
 
-    function _hasLocation(fields) {
-        return ("latitude" in fields && "longitude" in fields);
+    // Take one required parameter: "b" a byte. Builds a
+    // _gpsLine with data, when complete gps sentence has
+    // been collected passes it to _processSentence
+    function _processByte(b) {
+        if (b == '$') {
+            // Start a new _gpsLine
+            if (_gpsLine.len() > 0) _gpsLine = "";
+            _gpsLine += b.tochar();
+
+            // Toggle flag to append data to _gpsLine
+            _collectData = true;
+        } else if (_gpsLine.len() > LINE_MAX) {
+            // Sentence is too long, data must be corrupted
+            // Reset _gpsLine and wait for next start char.
+            _gpsLine = "";
+            _collectData = false;
+        } else if (_collectData) {
+            // Append charater to _gpsLine
+            _gpsLine += b.tochar();
+
+            // If we just appended the last char in GPS sentence
+            // process sentence
+            if (b == LINE_FEED) {
+                // Store GPS sentence
+                _lastSentence = _gpsLine;
+                // Reset gps_line
+                _gpsLine = "";
+                // Toggle flag to stop adding data to _gpsLine
+                _collectData = false;
+                // Process latest GPS sentence
+                _processSentence(_lastSentence);
+            }
+        }
     }
 
-    function _isStatusActive(fields) {
-        return (fields != null && (("status" in fields && fields.status == "A") || ("fixQuality" in fields && fields.fixQuality != "0")));
+    // Take one required parameter: "gpsData" a gps sentence.
+    // If parsed library is included then parses data and updates
+    // _lastLat, _lastLong, and _hasFix. Passed either sentence or
+    // parsed data to dataReady callback if there is one.
+    function _processSentence(gpsData) {
+         // Set callback param defaults
+        local hasLocation = null;
+
+        // If have parser, update lat, lng, fix and callback vars
+        if (_hasGPSParser) {
+            // Parse GPS sentence
+            local parsed = GPSParser.getGPSDataTable(gpsData);
+            // Update _hasFix
+            _updateFix(parsed);
+            // Update last stored location
+            hasLocation = hasActiveLoc(parsed);
+            if (hasLocation) {
+                _lastLat  = parsed.latitude;
+                _lastLong = parsed.longitude;
+            }
+            if (_parseData) gpsData = parsed;
+        }
+
+        // Call callback
+        if (_callback != null) _callback(hasLocation, gpsData);
+    }
+
+    // Helper function that returns boolean if status is active and latitude and longitude
+    // slots are in the "gpsData" table passed in.
+    function hasActiveLoc(gpsData) {
+        return (_isActive(gpsData) && "latitude" in gpsData && "longitude" in gpsData);
+    }
+
+    // Helper function that updated _hasFix based on latest GGS messages.
+    function _updateFix(gpsData) {
+        if (gpsData != null && gpsData.sentenceId == GPS_PARSER_GGA && "fixQuality" in gpsData) {
+            _hasFix = (gpsData.fixQuality != "0");
+        }
+    }
+
+    // Helper function that returns boolean if active status or fixQuality
+    // indicates GPS has a active location data.
+    function _isActive(gpsData) {
+        return (gpsData != null && (("status" in gpsData && gpsData.status == "A") || ("fixQuality" in gpsData && gpsData.fixQuality != "0")));
     }
 
 }

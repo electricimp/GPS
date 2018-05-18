@@ -18,18 +18,18 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 // GPS Sentence Identifier
-const GPSParser_VTG = "VTG";
-const GPSParser_RMC = "RMC";
-const GPSParser_GLL = "GLL";
-const GPSParser_GGA = "GGA";
-const GPSParser_GSV = "GSV";
-const GPSParser_GSA = "GSA";
+const GPS_PARSER_VTG = "VTG";
+const GPS_PARSER_RMC = "RMC";
+const GPS_PARSER_GLL = "GLL";
+const GPS_PARSER_GGA = "GGA";
+const GPS_PARSER_GSV = "GSV";
+const GPS_PARSER_GSA = "GSA";
 
 // GPS Parser errors
-const GPSParser_UNEXPECTED_FIELDS_ERROR = "Unexpected number of fields found.";
-const GPSParser_INVALID_SENTENCE_ERROR  = "Check sum not valid.";
-const GPSParser_UNSUPPORTED_TYPE        = "Sentence Id not supported.";
-const GPSParser_LL_PARSING_ERROR        = "Error parsing Latitude/Longitude field.";
+const GPS_PARSER_UNEXPECTED_FIELDS_ERROR = "Unexpected number of fields found.";
+const GPS_PARSER_INVALID_SENTENCE_ERROR  = "Check sum not valid.";
+const GPS_PARSER_UNSUPPORTED_TYPE        = "Sentence Id not supported.";
+const GPS_PARSER_LL_PARSING_ERROR        = "Error parsing Latitude/Longitude field.";
 
 // GPSParser:
 // All data is transmitted in the form of sentences. Only printable ASCII characters
@@ -62,7 +62,7 @@ class GPSParser {
                 fields.push(field);
                 field = "";
             } else {
-                field+=char.tochar();
+                field += char.tochar();
             }
         }
         if (field.len() > 0) {
@@ -106,16 +106,16 @@ class GPSParser {
         local hasCS = hasCheckSum(sentence);
 
         // Extract Talker ID and Sentence ID
-        data.talkerId   <- fields[0].slice(0,2);
+        data.talkerId   <- fields[0].slice(0, 2);
         data.sentenceId <- fields[0].slice(2);
 
         if (!isValid(sentence)) {
-            data.error <- GPSParser_INVALID_SENTENCE_ERROR;
+            data.error <- GPS_PARSER_INVALID_SENTENCE_ERROR;
             return data;
         }
 
         switch(data.sentenceId) {
-            case GPSParser_VTG:
+            case GPS_PARSER_VTG:
                 // Velocity made good
                 // $GPVTG,054.7,T,034.4,M,005.5,N,010.2,K*48
                 // $GNVTG,,T,,M,0.140,N,0.260,K,A*3C
@@ -130,10 +130,10 @@ class GPSParser {
                     // A=autonomous, D=differential, E=Estimated, N=not valid, S=Simulator
                     if (dataLen == 10 && fields[9] != "") data.modeIndicator <- fields[9];
                 } else {
-                    data.error <- GPSParser_UNEXPECTED_FIELDS_ERROR;
+                    data.error <- GPS_PARSER_UNEXPECTED_FIELDS_ERROR;
                 }
                 break;
-            case GPSParser_RMC:
+            case GPS_PARSER_RMC:
                 // Recommended Minimum sentence C
                 // $GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A
                 // $GPRMC,,V,,,,,,,,,,N*53
@@ -141,29 +141,29 @@ class GPSParser {
                 local dataLen = _getDataLength(hasCS, fields.len());
                 // Expected length (excluding check sum): 12 or 13
                 if (dataLen == 12 || dataLen == 13) {
-                    if (fields[1] != "")  data.time       <- fields[1]; // 123519 (12:35:19 UTC)
-                    if (fields[9] != "")  data.date       <- fields[9]; // 230394 (23rd of March 1994)
-                    if (fields[2] != "")  data.status     <- fields[2]; // Status A=active or V=Void
-                    if (fields[7] != "")  data.speedKnots <- fields[7]; // 022.4
-                    if (fields[8] != "")  data.trackAngle <- fields[8]; // 084.4
-                    if (fields[10] != "" && fields[11] != "") data.mVar      <- format("%s %s", fields[10], fields[11]); // 003.1 W
+                    if (fields[1] != "") data.time       <- fields[1]; // 123519 (12:35:19 UTC)
+                    if (fields[9] != "") data.date       <- fields[9]; // 230394 (23rd of March 1994)
+                    if (fields[2] != "") data.status     <- fields[2]; // Status A=active or V=Void
+                    if (fields[7] != "") data.speedKnots <- fields[7]; // 022.4
+                    if (fields[8] != "") data.trackAngle <- fields[8]; // 084.4
+                    if (fields[10] != "" && fields[11] != "") data.mVar <- format("%s %s", fields[10], fields[11]); // 003.1 W
                     if (fields[3]  != "" && fields[4]  != "") {
                         // 4807.038  N
                         local lat = parseLatitude(fields[3], fields[4]);
-                        (lat == null) ? data.error <- GPSParser_LL_PARSING_ERROR : data.latitude <- lat;
+                        (lat == null) ? data.error <- GPS_PARSER_LL_PARSING_ERROR : data.latitude <- lat;
                     }
                     if (fields[5]  != "" && fields[6]  != "") {
                         // 01131.000 E
                         local lng = parseLongitude(fields[5], fields[6]);
-                        (lng == null) ? data.error <- GPSParser_LL_PARSING_ERROR : data.longitude <- lng;
+                        (lng == null) ? data.error <- GPS_PARSER_LL_PARSING_ERROR : data.longitude <- lng;
                     }
                     // A=autonomous, D=differential, E=Estimated, N=not valid, S=Simulator
                     if (dataLen == 13 && fields[12] != "") data.modeIndicator <- fields[12];
                 } else {
-                    data.error <- GPSParser_UNEXPECTED_FIELDS_ERROR;
+                    data.error <- GPS_PARSER_UNEXPECTED_FIELDS_ERROR;
                 }
                 break;
-            case GPSParser_GLL:
+            case GPS_PARSER_GLL:
                 // Geographic position, Latitude and Longitude
                 // $GPGLL,4916.45,N,12311.12,W,225444,A,*1D
                 // $GPGLL,,,,,,V,N*64
@@ -171,25 +171,25 @@ class GPSParser {
                 local dataLen = _getDataLength(hasCS, fields.len());
                 // Expected length (excluding check sum): 7 or 8
                 if (dataLen == 7 || dataLen == 8) {
-                    if (fields[5] != "")  data.time       <- fields[5]; // 225444 22:54:44 UTC
-                    if (fields[6] != "")  data.status     <- fields[6]; // Status A=active or V=Void
-                    if (fields[1]  != "" && fields[2]  != "") {
+                    if (fields[5] != "")  data.time   <- fields[5]; // 225444 22:54:44 UTC
+                    if (fields[6] != "")  data.status <- fields[6]; // Status A=active or V=Void
+                    if (fields[1] != "" && fields[2] != "") {
                         // 4807.038  N
                         local lat = parseLatitude(fields[1], fields[2]);
-                        (lat == null) ? data.error <- GPSParser_LL_PARSING_ERROR : data.latitude <- lat;
+                        (lat == null) ? data.error <- GPS_PARSER_LL_PARSING_ERROR : data.latitude <- lat;
                     }
-                    if (fields[3]  != "" && fields[4]  != "") {
+                    if (fields[3] != "" && fields[4] != "") {
                         // 01131.000 E
                         local lng = parseLongitude(fields[3], fields[4]);
-                        (lng == null) ? data.error <- GPSParser_LL_PARSING_ERROR : data.longitude <- lng;
+                        (lng == null) ? data.error <- GPS_PARSER_LL_PARSING_ERROR : data.longitude <- lng;
                     }
                     // A=autonomous, D=differential, E=Estimated, N=not valid, S=Simulator
                     if (dataLen == 8 && fields[7] != "") data.modeIndicator <- fields[7];
                 } else {
-                    data.error <- GPSParser_UNEXPECTED_FIELDS_ERROR;
+                    data.error <- GPS_PARSER_UNEXPECTED_FIELDS_ERROR;
                 }
                 break;
-            case GPSParser_GGA:
+            case GPS_PARSER_GGA:
                 // Global Positioning System Fix Data
                 // $GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47
                 // $GPGGA,,,,,,0,00,99.99,,,,,,*48
@@ -197,29 +197,29 @@ class GPSParser {
                 local dataLen = _getDataLength(hasCS, fields.len());
                 // Expected length (excluding check sum): 15
                 if (dataLen == 15) {
-                    if (fields[1] != "")  data.time       <- fields[1]; // 123519 (12:35:19 UTC)
-                    if (fields[6] != "")  data.fixQuality <- fields[6]; // 0-8, 0 = invalid, 1 = GPS fix (SPS), 2 = DGPS fix, 3 = PPS fix, 4 = Real Time Kinematic, 5 = Float RTK, 6 = estimated (dead reckoning) (2.3 feature), 7 = Manual input mode, 8 = Simulation mode
-                    if (fields[7] != "")  data.numSatellites  <- fields[7]; // 08
-                    if (fields[8] != "")  data.HDOP           <- fields[8]; // 0.9
-                    if (fields[9] != "")  data.altitude       <- fields[9]; // 545.4 (in Meters)
+                    if (fields[1] != "") data.time            <- fields[1]; // 123519 (12:35:19 UTC)
+                    if (fields[6] != "") data.fixQuality      <- fields[6]; // 0-8, 0 = invalid, 1 = GPS fix (SPS), 2 = DGPS fix, 3 = PPS fix, 4 = Real Time Kinematic, 5 = Float RTK, 6 = estimated (dead reckoning) (2.3 feature), 7 = Manual input mode, 8 = Simulation mode
+                    if (fields[7] != "") data.numSatellites   <- fields[7]; // 08
+                    if (fields[8] != "") data.HDOP            <- fields[8]; // 0.9
+                    if (fields[9] != "") data.altitude        <- fields[9]; // 545.4 (in Meters)
                     if (fields[11] != "") data.geoSeparation  <- fields[11]; // 46.9 (in Meters)
                     if (fields[13] != "") data.lastDGPSUpdate <- fields[13]; // x.x (in Seconds)
                     if (fields[14] != "") data.DGPSStationID  <- fields[14]; // xxxx
-                    if (fields[2]  != "" && fields[3]  != "") {
+                    if (fields[2] != "" && fields[3] != "") {
                         // 4807.038  N
                         local lat = parseLatitude(fields[2], fields[3]);
-                        (lat == null) ? data.error <- GPSParser_LL_PARSING_ERROR : data.latitude <- lat;
+                        (lat == null) ? data.error <- GPS_PARSER_LL_PARSING_ERROR : data.latitude <- lat;
                     }
-                    if (fields[4]  != "" && fields[5]  != "") {
+                    if (fields[4] != "" && fields[5] != "") {
                         // 01131.000 E
                         local lng = parseLongitude(fields[4], fields[5]);
-                        (lng == null) ? data.error <- GPSParser_LL_PARSING_ERROR : data.longitude <- lng;
+                        (lng == null) ? data.error <- GPS_PARSER_LL_PARSING_ERROR : data.longitude <- lng;
                     }
                 } else {
-                    data.error <- GPSParser_UNEXPECTED_FIELDS_ERROR;
+                    data.error <- GPS_PARSER_UNEXPECTED_FIELDS_ERROR;
                 }
                 break;
-            case GPSParser_GSV:
+            case GPS_PARSER_GSV:
                 // Satellites in view
                 // $GPGSV,2,1,08,01,40,083,46,02,17,308,41,12,07,344,39,14,22,228,45*75
                 // $GPGSV,1,1,01,22,,,18*71
@@ -239,17 +239,17 @@ class GPSParser {
                     for (local i = 1; i < dataLen / 4; i++) {
                         local info = {};
                         local startingIdx = 4 * i;
-                        if (fields[startingIdx] != "") info.satellitePRN <- fields[startingIdx];
-                        if (fields[startingIdx+1] != "") info.elevation <- fields[startingIdx+1];
-                        if (fields[startingIdx+2] != "") info.azimuth <- fields[startingIdx+2];
-                        if (fields[startingIdx+3] != "") info.snr <- fields[startingIdx+3];
+                        if (fields[startingIdx] != "")   info.satellitePRN <- fields[startingIdx];
+                        if (fields[startingIdx+1] != "") info.elevation    <- fields[startingIdx+1];
+                        if (fields[startingIdx+2] != "") info.azimuth      <- fields[startingIdx+2];
+                        if (fields[startingIdx+3] != "") info.snr          <- fields[startingIdx+3];
                         data.satelliteInfo.push(info);
                     }
                 } else {
-                    data.error <- GPSParser_UNEXPECTED_FIELDS_ERROR;
+                    data.error <- GPS_PARSER_UNEXPECTED_FIELDS_ERROR;
                 }
                 break;
-            case GPSParser_GSA:
+            case GPS_PARSER_GSA:
                 // GPS DOP and active satellites
                 // $GPGSA,A,3,04,05,,09,12,,,24,,,,,2.5,1.3,2.1*39
                 // $GPGSA,A,1,,,,,,,,,,,,,99.99,99.99,99.99*30
@@ -257,22 +257,22 @@ class GPSParser {
                 local dataLen = _getDataLength(hasCS, fields.len());
                 // Expected length (excluding check sum): 18
                 if (dataLen == 18) {
-                    if (fields[1] != "") data.selMode <- fields[1];  // "A" auto, "M" manual
-                    if (fields[2] != "") data.mode    <- fields[2];  // 1 - no fix, 2 - 2D fix, 3 - 3D fix
-                    if (fields[15] != "") data.PDOP   <- fields[15]; // 2.5
-                    if (fields[16] != "") data.HDOP   <- fields[16]; // 1.3
-                    if (fields[17] != "") data.VDOP   <- fields[17]; // 2.1
+                    if (fields[1] != "")  data.selMode <- fields[1];  // "A" auto, "M" manual
+                    if (fields[2] != "")  data.mode    <- fields[2];  // 1 - no fix, 2 - 2D fix, 3 - 3D fix
+                    if (fields[15] != "") data.PDOP    <- fields[15]; // 2.5
+                    if (fields[16] != "") data.HDOP    <- fields[16]; // 1.3
+                    if (fields[17] != "") data.VDOP    <- fields[17]; // 2.1
                     // Add satellite PRNs
                     data.satellitePRNs <- [];
                     for (local i = 3; i < 15; i++) {
                         if (fields[i] != "") data.satellitePRNs.push(fields[i]);
                     }
                 } else {
-                    data.error <- GPSParser_UNEXPECTED_FIELDS_ERROR;
+                    data.error <- GPS_PARSER_UNEXPECTED_FIELDS_ERROR;
                 }
                 break;
             default:
-                data.error <- GPSParser_UNSUPPORTED_TYPE;
+                data.error <- GPS_PARSER_UNSUPPORTED_TYPE;
         }
         return data;
     }
@@ -282,7 +282,7 @@ class GPSParser {
     function parseLatitude(rawLat, dir) {
         if (rawLat.len() > 2) {
             local sign = (dir == "S") ? -1 : 1;
-            local lat = _convertLLToDecDeg(rawLat.slice(0,2), rawLat.slice(2), sign);
+            local lat = _convertLLToDecDeg(rawLat.slice(0, 2), rawLat.slice(2), sign);
             return (typeof lat == "float") ? format("%f", lat) : null;
         }
         return null;
@@ -293,7 +293,7 @@ class GPSParser {
     function parseLongitude(rawLgn, dir) {
         if (rawLgn.len() > 3) {
             local sign = (dir == "W") ? -1 : 1;
-            local lgn = _convertLLToDecDeg(rawLgn.slice(0,3), rawLgn.slice(3), sign);
+            local lgn = _convertLLToDecDeg(rawLgn.slice(0, 3), rawLgn.slice(3), sign);
             return (typeof lgn == "float") ? format("%f", lgn) : null;
         }
         return null;
