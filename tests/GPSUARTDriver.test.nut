@@ -250,7 +250,7 @@ class GPSUARTDriverTests extends ImpTestCase {
         assertEqual(GPS_SENTENCE_GGA_CHECKSUM_EMPTY, gps.getGPSSentence());
     }
 
-    function testDRCB_W_Parser() {
+    function testDRCBwParser() {
         // Test callback with parser
         gps._hasGPSParser = true;
 
@@ -290,7 +290,7 @@ class GPSUARTDriverTests extends ImpTestCase {
         gps._callback = null;
     }
 
-    function testDRCB_WO_Parser() {
+    function testDRCBwoParser() {
         // Test callback without parser
         gps._hasGPSParser = false;
         local exptdDataFormat = "string";
@@ -324,6 +324,23 @@ class GPSUARTDriverTests extends ImpTestCase {
         // Reset parser flag & callback
         gps._hasGPSParser = true;
         gps._callback = null;
+    }
+
+    function testNoParserErrors() {
+        local ERROR_NO_PARSER = "No GPS parser found. Cannot parse GPS data.";
+        gps._hasGPSParser = false;
+        resetGSPVars();
+
+        // GPS has location
+        uartSimulator(GPS_SENTENCE_GLL_CHECKSUM_FULL_MI);
+
+        assertEqual(ERROR_NO_PARSER, gps.hasFix());
+        assertEqual(ERROR_NO_PARSER, gps.getLatitude());
+        assertEqual(ERROR_NO_PARSER, gps.getLongitude());
+        assertEqual(GPS_SENTENCE_GLL_CHECKSUM_FULL_MI, gps.getGPSSentence());
+
+        // Reset parser flag
+        gps._hasGPSParser = true;
     }
 
     function tearDown() {}
