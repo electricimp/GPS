@@ -40,8 +40,9 @@ const GPS_SENTENCE_GSV_CHECKSUM_SM_M_PT1 = "$GLGSV,3,1,09,70,38,293,,71,08,336,1
 const GPS_SENTENCE_GSV_CHECKSUM_SM_M_PT2 = "$GLGSV,3,2,09,79,41,044,32,80,42,310,26,81,38,086,37,82,23,143,21*69\r\n";
 const GPS_SENTENCE_GSV_CHECKSUM_SM_M_PT3 = "$GLGSV,3,3,09,88,18,034,28*58\r\n";
 
+const GPS_SENTENCE_GSA_CHECKSUM_EMPTY    = "$GPGSA,A,1,,,,,,,,,,,,,99.99,99.99,99.99*30\r\n";
 const GPS_SENTENCE_GSA_CHECKSUM_SOME     = "$GPGSA,A,3,04,05,,09,12,,,24,,,,,2.5,1.3,2.1*39\r\n";
-useconst GPS_SENTENCE_GSA_CHECKSUM_MORE     = "$GNGSA,A,3,30,07,08,05,11,13,18,,,,,,1.45,0.97,1.08*19\r\n";
+const GPS_SENTENCE_GSA_CHECKSUM_MORE     = "$GNGSA,A,3,30,07,08,05,11,13,18,,,,,,1.45,0.97,1.08*19\r\n";
 
 const GPS_SENTENCE_NO_CHECKSUM           = "$GPVTG,054.7,T,034.4,M,005.5,N,010.2,K\r\n";
 const GPS_CHECKSUM_INCORRECT             = "$GPVTG,054.7,T,034.4,M,005.5,N,010.2,K*23\r\n";
@@ -63,15 +64,15 @@ class GPSParserTests extends ImpTestCase {
 
         // Check that empty fields are being included
         assertEqual(a.len(), b.len());
-        assertEqual(a[5], "");
+        assertEqual("", a[5]);
 
         // Check that first field is the talker and sentence id
         assertTrue(a[0].len() == 5);
-        assertEqual(a[0].slice(0,2), "GP");
-        assertEqual(a[0].slice(2), "RMC");
+        assertEqual("GP", a[0].slice(0,2));
+        assertEqual("RMC", a[0].slice(2));
 
         // Check that last field is the checksum
-        assertEqual(b.top(), "78");
+        assertEqual("78", b.top());
     }
 
     function testHasCheckSum() {
@@ -92,66 +93,66 @@ class GPSParserTests extends ImpTestCase {
         local rmc = GPSParser.getFields(GPS_SENTENCE_RMC_CHECKSUM_MORE_MI);
         // rmc [3][4] 3723.71721,N
         local lat = GPSParser.parseLatitude(rmc[3], rmc[4]);
-        assertEqual(lat, "37.395287");
+        assertEqual("37.395287", lat);
     }
 
     function testParseLongitude() {
         local rmc = GPSParser.getFields(GPS_SENTENCE_RMC_CHECKSUM_MORE_MI);
         // rmc [5][6] 12206.14085,W
         local lat = GPSParser.parseLongitude(rmc[5], rmc[6]);
-        assertEqual(lat, "-122.102348");
+        assertEqual("-122.102348", lat);
     }
 
     function testGetGPSDataTableVTG() {
         // $GPVTG,054.7,T,034.4,M,005.5,N,010.2,K*48\r\n
         local data = GPSParser.getGPSDataTable(GPS_SENTENCE_VTG_CHECKSUM_FULL);
-        assertEqual(data.talkerId, "GP");
-        assertEqual(data.sentenceId, "VTG");
-        assertEqual(data.tTrack, "054.7");
-        assertEqual(data.mTrack, "034.4");
-        assertEqual(data.speedKnots, "005.5");
-        assertEqual(data.speedKPH, "010.2");
+        assertEqual("GP", data.talkerId);
+        assertEqual("VTG", data.sentenceId);
+        assertEqual("054.7", data.tTrack);
+        assertEqual("034.4", data.mTrack);
+        assertEqual("005.5", data.speedKnots);
+        assertEqual("010.2", data.speedKPH);
         assertTrue(!("modeIndicator" in data));
 
         // $GNVTG,,T,,M,0.140,N,0.260,K,A*3C\r\n
         data = GPSParser.getGPSDataTable(GPS_SENTENCE_VTG_CHECKSUM_EMPTY_MI);
-        assertEqual(data.talkerId, "GN");
-        assertEqual(data.sentenceId, "VTG");
+        assertEqual("GN", data.talkerId);
+        assertEqual("VTG", data.sentenceId);
         assertTrue(!("tTrack" in data));
         assertTrue(!("mTrack" in data));
-        assertEqual(data.speedKnots, "0.140");
-        assertEqual(data.speedKPH, "0.260");
-        assertEqual(data.modeIndicator, "A");
+        assertEqual("0.140", data.speedKnots);
+        assertEqual("0.260", data.speedKPH);
+        assertEqual("A", data.modeIndicator);
 
         local csInvalid = GPSParser.getGPSDataTable("$GNVTG,,T,,M,0.140,N,0.260,K,A*3\r\n");
-        assertEqual(GPSParser_INVALID_SENTENCE_ERROR, csInvalid.error);
+        assertEqual(GPS_PARSER_INVALID_SENTENCE_ERROR, csInvalid.error);
         local tooShort = GPSParser.getGPSDataTable("$GNVTG,T,M,0.140,N,0.260,K,A\r\n");
-        assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooShort.error);
+        assertEqual(GPS_PARSER_UNEXPECTED_FIELDS_ERROR, tooShort.error);
         local tooLong = GPSParser.getGPSDataTable("$GNVTG,,T,,,,,M,0.140,N,0.260,K,A\r\n");
-        assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooLong.error);
+        assertEqual(GPS_PARSER_UNEXPECTED_FIELDS_ERROR, tooLong.error);
     }
 
     function testGetGPSDataTableRMC() {
         // $GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A\r\n
         local data = GPSParser.getGPSDataTable(GPS_SENTENCE_RMC_CHECKSUM_FULL);
-        assertEqual(data.talkerId, "GP");
-        assertEqual(data.sentenceId, "RMC");
-        assertEqual(data.time, "123519");
-        assertEqual(data.status, "A");
-        assertEqual(data.latitude, "48.117298");
-        assertEqual(data.longitude, "11.516666");
-        assertEqual(data.speedKnots, "022.4");
-        assertEqual(data.trackAngle, "084.4");
-        assertEqual(data.date, "230394");
-        assertEqual(data.mVar, "003.1 W");
+        assertEqual("GP", data.talkerId);
+        assertEqual("RMC", data.sentenceId);
+        assertEqual("123519", data.time);
+        assertEqual("A", data.status);
+        assertEqual("48.117298", data.latitude);
+        assertEqual("11.516666", data.longitude);
+        assertEqual("022.4", data.speedKnots);
+        assertEqual("084.4", data.trackAngle);
+        assertEqual("230394", data.date);
+        assertEqual("003.1 W", data.mVar);
         assertTrue(!("modeIndicator" in data));
 
         // $GPRMC,,V,,,,,,,,,,N*53\r\n
         data = GPSParser.getGPSDataTable(GPS_SENTENCE_RMC_CHECKSUM_EMPTY_MI);
-        assertEqual(data.talkerId, "GP");
-        assertEqual(data.sentenceId, "RMC");
-        assertEqual(data.status, "V");
-        assertEqual(data.modeIndicator, "N");
+        assertEqual("GP", data.talkerId);
+        assertEqual("RMC", data.sentenceId);
+        assertEqual("V", data.status);
+        assertEqual("N", data.modeIndicator);
         assertTrue(!("time" in data));
         assertTrue(!("date" in data));
         assertTrue(!("speedKnots" in data));
@@ -162,85 +163,85 @@ class GPSParserTests extends ImpTestCase {
 
         // $GNRMC,181859.00,A,3723.71721,N,12206.14085,W,0.140,,090518,,,A*78\r\n
         data = GPSParser.getGPSDataTable(GPS_SENTENCE_RMC_CHECKSUM_MORE_MI);
-        assertEqual(data.talkerId, "GN");
-        assertEqual(data.sentenceId, "RMC");
-        assertEqual(data.time, "181859.00");
-        assertEqual(data.status, "A");
-        assertEqual(data.latitude, "37.395287");
-        assertEqual(data.longitude, "-122.102348");
-        assertEqual(data.speedKnots, "0.140");
+        assertEqual("GN", data.talkerId);
+        assertEqual("RMC", data.sentenceId);
+        assertEqual("181859.00", data.time);
+        assertEqual("A", data.status);
+        assertEqual("37.395287", data.latitude);
+        assertEqual("-122.102348", data.longitude);
+        assertEqual("0.140", data.speedKnots);
         assertTrue(!("trackAngle" in data));
-        assertEqual(data.date, "090518");
+        assertEqual("090518", data.date);
         assertTrue(!("mVar" in data));
-        assertEqual(data.modeIndicator, "A");
+        assertEqual("A", data.modeIndicator);
 
         local csInvalid = GPSParser.getGPSDataTable("$GNRMC,181859,A,3723.71721,N,12206.14085,W,0.140,,090518,,,A*78\r\n");
-        assertEqual(GPSParser_INVALID_SENTENCE_ERROR, csInvalid.error);
+        assertEqual(GPS_PARSER_INVALID_SENTENCE_ERROR, csInvalid.error);
         local tooShort = GPSParser.getGPSDataTable("$GNRMC,181859.00,A,3723.71721,N,12206.14085,W,0.140,,090518,A\r\n");
-        assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooShort.error);
+        assertEqual(GPS_PARSER_UNEXPECTED_FIELDS_ERROR, tooShort.error);
         local tooLong = GPSParser.getGPSDataTable("$GPRMC,,V,,,,,,,,,,,,,,N\r\n");
-        assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooLong.error);
+        assertEqual(GPS_PARSER_UNEXPECTED_FIELDS_ERROR, tooLong.error);
     }
 
     function testGetGPSDataTableGLL() {
         // $GNGLL,3723.71722,N,12206.14081,W,181858.00,A,A*67\r\n
         local data = GPSParser.getGPSDataTable(GPS_SENTENCE_GLL_CHECKSUM_FULL_MI);
-        assertEqual(data.talkerId, "GN");
-        assertEqual(data.sentenceId, "GLL");
-        assertEqual(data.latitude, "37.395287");
-        assertEqual(data.longitude, "-122.102348");
-        assertEqual(data.time, "181858.00");
-        assertEqual(data.status, "A");
-        assertEqual(data.modeIndicator, "A");
+        assertEqual("GN", data.talkerId);
+        assertEqual("GLL", data.sentenceId);
+        assertEqual("37.395287", data.latitude);
+        assertEqual("-122.102348", data.longitude);
+        assertEqual("181858.00", data.time);
+        assertEqual("A", data.status);
+        assertEqual("A", data.modeIndicator);
 
         // $GPGLL,,,,,,V,N*64\r\n
         data = GPSParser.getGPSDataTable(GPS_SENTENCE_GLL_CHECKSUM_EMPTY_MI);
-        assertEqual(data.talkerId, "GP");
-        assertEqual(data.sentenceId, "GLL");
+        assertEqual("GP", data.talkerId);
+        assertEqual("GLL", data.sentenceId);
         assertTrue(!("latitude" in data));
         assertTrue(!("longitude" in data));
         assertTrue(!("time" in data));
-        assertEqual(data.status, "V");
-        assertEqual(data.modeIndicator, "N");
+        assertEqual("V", data.status);
+        assertEqual("N", data.modeIndicator);
 
         local csInvalid = GPSParser.getGPSDataTable("$GPGLL,,,,,,V,N*62\r\n");
-        assertEqual(GPSParser_INVALID_SENTENCE_ERROR, csInvalid.error);
+        assertEqual(GPS_PARSER_INVALID_SENTENCE_ERROR, csInvalid.error);
         local tooShort = GPSParser.getGPSDataTable("$GPGLL,,,V,N\r\n");
-        assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooShort.error);
+        assertEqual(GPS_PARSER_UNEXPECTED_FIELDS_ERROR, tooShort.error);
         local tooLong = GPSParser.getGPSDataTable("$GPGLL,,,,,,,,,,V,N\r\n");
-        assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooLong.error);
+        assertEqual(GPS_PARSER_UNEXPECTED_FIELDS_ERROR, tooLong.error);
         local latErr = GPSParser.getGPSDataTable("$GNGLL,LATT,N,12206.14081,W,181858.00,A,A\r\n");
-        assertEqual(GPSParser_LL_PARSING_ERROR, latErr.error);
+        assertEqual(GPS_PARSER_LL_PARSING_ERROR, latErr.error);
         local lngErr = GPSParser.getGPSDataTable("$GNGLL,3723.71722,N,LONG,W,181858.00,A,A\r\n");
-        assertEqual(GPSParser_LL_PARSING_ERROR, lngErr.error);
+        assertEqual(GPS_PARSER_LL_PARSING_ERROR, lngErr.error);
     }
 
     function testGetGPSDataTableGGA() {
         // $GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47\r\n
         local data = GPSParser.getGPSDataTable(GPS_SENTENCE_GGA_CHECKSUM_FULL);
-        assertEqual(data.talkerId, "GP");
-        assertEqual(data.sentenceId, "GGA");
-        assertEqual(data.time, "123519");
-        assertEqual(data.latitude, "48.117298");
-        assertEqual(data.longitude, "11.516666");
-        assertEqual(data.fixQuality, "1");
-        assertEqual(data.numSatellites, "08");
-        assertEqual(data.HDOP, "0.9");
-        assertEqual(data.altitude, "545.4");
-        assertEqual(data.geoSeparation, "46.9");
+        assertEqual("GP", data.talkerId);
+        assertEqual("GGA", data.sentenceId);
+        assertEqual("123519", data.time);
+        assertEqual("48.117298", data.latitude);
+        assertEqual("11.516666", data.longitude);
+        assertEqual("1", data.fixQuality);
+        assertEqual("08", data.numSatellites);
+        assertEqual("0.9", data.HDOP);
+        assertEqual("545.4", data.altitude);
+        assertEqual("46.9", data.geoSeparation);
         assertTrue(!("lastDGPSUpdate" in data));
         assertTrue(!("DGPSStationID" in data));
 
         // $GPGGA,,,,,,0,00,99.99,,,,,,*48\r\n
         data = GPSParser.getGPSDataTable(GPS_SENTENCE_GGA_CHECKSUM_EMPTY);
-        assertEqual(data.talkerId, "GP");
-        assertEqual(data.sentenceId, "GGA");
+        assertEqual("GP", data.talkerId);
+        assertEqual("GGA", data.sentenceId);
         assertTrue(!("time" in data));
         assertTrue(!("latitude" in data));
         assertTrue(!("longitude" in data));
-        assertEqual(data.fixQuality, "0");
-        assertEqual(data.numSatellites, "00");
-        assertEqual(data.HDOP, "99.99");
+        assertEqual("0", data.fixQuality);
+        assertEqual("00", data.numSatellites);
+        assertEqual("99.99", data.HDOP);
         assertTrue(!("altitude" in data));
         assertTrue(!("geoSeparation" in data));
         assertTrue(!("lastDGPSUpdate" in data));
@@ -248,128 +249,128 @@ class GPSParserTests extends ImpTestCase {
 
         // $GNGGA,181859.00,3723.71721,N,12206.14085,W,1,12,0.97,38.0,M,-30.0,M,,*4C\r\n
         local data = GPSParser.getGPSDataTable(GPS_SENTENCE_GGA_CHECKSUM_FULL_2);
-        assertEqual(data.talkerId, "GN");
-        assertEqual(data.sentenceId, "GGA");
-        assertEqual(data.time, "181859.00");
-        assertEqual(data.latitude, "37.395287");
-        assertEqual(data.longitude, "-122.102348");
-        assertEqual(data.fixQuality, "1");
-        assertEqual(data.numSatellites, "12");
-        assertEqual(data.HDOP, "0.97");
-        assertEqual(data.altitude, "38.0");
-        assertEqual(data.geoSeparation, "-30.0");
+        assertEqual("GN", data.talkerId);
+        assertEqual("GGA", data.sentenceId);
+        assertEqual("181859.00", data.time);
+        assertEqual("37.395287", data.latitude);
+        assertEqual("-122.102348", data.longitude);
+        assertEqual("1", data.fixQuality);
+        assertEqual("12", data.numSatellites);
+        assertEqual("0.97", data.HDOP);
+        assertEqual("38.0", data.altitude);
+        assertEqual("-30.0", data.geoSeparation);
         assertTrue(!("lastDGPSUpdate" in data));
         assertTrue(!("DGPSStationID" in data));
 
         local csInvalid = GPSParser.getGPSDataTable("$GNGGA,181859.00,3723.71721,N,12206.14085,W,1,12,0.97,38.0,M,-30.0,M,,*4D\r\n");
-        assertEqual(GPSParser_INVALID_SENTENCE_ERROR, csInvalid.error);
+        assertEqual(GPS_PARSER_INVALID_SENTENCE_ERROR, csInvalid.error);
         local tooShort = GPSParser.getGPSDataTable("$GPGGA,,,,,0,00,99.99,,,,,,\r\n");
-        assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooShort.error);
+        assertEqual(GPS_PARSER_UNEXPECTED_FIELDS_ERROR, tooShort.error);
         local tooLong = GPSParser.getGPSDataTable("$GPGLL,,,,,,,,,,,,,V,N\r\n");
-        assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooLong.error);
+        assertEqual(GPS_PARSER_UNEXPECTED_FIELDS_ERROR, tooLong.error);
     }
 
     function testGetGPSDataTableGSV() {
         // $GPGSV,2,1,08,01,40,083,46,02,17,308,41,12,07,344,39,14,22,228,45*75\r\n
         local data = GPSParser.getGPSDataTable(GPS_SENTENCE_GSV_CHECKSUM_FULL);
-        assertEqual(data.talkerId, "GP");
-        assertEqual(data.sentenceId, "GSV");
-        assertEqual(data.numMsgs, "2");
-        assertEqual(data.msgNum, "1");
-        assertEqual(data.numSatellites, "08");
+        assertEqual("GP", data.talkerId);
+        assertEqual("GSV", data.sentenceId);
+        assertEqual("2", data.numMsgs);
+        assertEqual("1", data.msgNum);
+        assertEqual("08", data.numSatellites);
         local satInfo = data.satelliteInfo;
-        assertEqual(typeof satInfo, "array");
-        assertEqual(satInfo.len(), 4);
-        assertEqual(satInfo[0].satellitePRN, "01");
-        assertEqual(satInfo[0].elevation, "40");
-        assertEqual(satInfo[0].azimuth, "083");
-        assertEqual(satInfo[0].snr, "46");
-        assertEqual(satInfo[1].satellitePRN, "02");
-        assertEqual(satInfo[1].elevation, "17");
-        assertEqual(satInfo[1].azimuth, "308");
-        assertEqual(satInfo[1].snr, "41");
-        assertEqual(satInfo[2].satellitePRN, "12");
-        assertEqual(satInfo[2].elevation, "07");
-        assertEqual(satInfo[2].azimuth, "344");
-        assertEqual(satInfo[2].snr, "39");
-        assertEqual(satInfo[3].satellitePRN, "14");
-        assertEqual(satInfo[3].elevation, "22");
-        assertEqual(satInfo[3].azimuth, "228");
-        assertEqual(satInfo[3].snr, "45");
+        assertEqual("array", typeof satInfo);
+        assertEqual(4, satInfo.len());
+        assertEqual("01", satInfo[0].satellitePRN);
+        assertEqual("40", satInfo[0].elevation);
+        assertEqual("083", satInfo[0].azimuth);
+        assertEqual("46", satInfo[0].snr);
+        assertEqual("02", satInfo[1].satellitePRN);
+        assertEqual("17", satInfo[1].elevation);
+        assertEqual("308", satInfo[1].azimuth);
+        assertEqual("41", satInfo[1].snr);
+        assertEqual("12", satInfo[2].satellitePRN);
+        assertEqual("07", satInfo[2].elevation);
+        assertEqual("344", satInfo[2].azimuth);
+        assertEqual("39", satInfo[2].snr);
+        assertEqual("14", satInfo[3].satellitePRN);
+        assertEqual("22", satInfo[3].elevation);
+        assertEqual("228", satInfo[3].azimuth);
+        assertEqual("45", satInfo[3].snr);
 
 
         // $GPGSV,1,1,01,22,,,18*71\r\n
         data = GPSParser.getGPSDataTable(GPS_SENTENCE_GSV_CHECKSUM_EMPTY);
-        assertEqual(data.talkerId, "GP");
-        assertEqual(data.sentenceId, "GSV");
-        assertEqual(data.numMsgs, "1");
-        assertEqual(data.msgNum, "1");
-        assertEqual(data.numSatellites, "01");
+        assertEqual("GP", data.talkerId);
+        assertEqual("GSV", data.sentenceId);
+        assertEqual("1", data.numMsgs);
+        assertEqual("1", data.msgNum);
+        assertEqual("01", data.numSatellites);
         local satInfo = data.satelliteInfo;
-        assertEqual(typeof satInfo, "array");
-        assertEqual(satInfo.len(), 1);
-        assertEqual(satInfo[0].satellitePRN, "22");
+        assertEqual("array", typeof satInfo);
+        assertEqual(1, satInfo.len());
+        assertEqual("22", satInfo[0].satellitePRN);
         assertTrue(!("elevation" in satInfo[0]));
         assertTrue(!("azimuth" in satInfo[0]));
-        assertEqual(satInfo[0].snr, "18");
+        assertEqual("18", satInfo[0].snr);
 
         local csInvalid = GPSParser.getGPSDataTable("$GPGSV,1,1,01,22,,,18*72\r\n");
-        assertEqual(GPSParser_INVALID_SENTENCE_ERROR, csInvalid.error);
+        assertEqual(GPS_PARSER_INVALID_SENTENCE_ERROR, csInvalid.error);
         local tooShort = GPSParser.getGPSDataTable("$GPGSV,1,1,01,22,,18\r\n");
-        assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooShort.error);
+        assertEqual(GPS_PARSER_UNEXPECTED_FIELDS_ERROR, tooShort.error);
         local tooLong = GPSParser.getGPSDataTable("$GPGSV,1,1,01,22,,,,18\r\n");
-        assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooLong.error);
+        assertEqual(GPS_PARSER_UNEXPECTED_FIELDS_ERROR, tooLong.error);
     }
 
     function testGetGPSDataTableGSA() {
         // $GPGSA,A,3,04,05,,09,12,,,24,,,,,2.5,1.3,2.1*39\r\n
         local data = GPSParser.getGPSDataTable(GPS_SENTENCE_GSA_CHECKSUM_SOME);
-        assertEqual(data.talkerId, "GP");
-        assertEqual(data.sentenceId, "GSA");
-        assertEqual(data.selMode, "A");
-        assertEqual(data.mode, "3");
-        assertEqual(data.PDOP, "2.5");
-        assertEqual(data.HDOP, "1.3");
-        assertEqual(data.VDOP, "2.1");
-        assertEqual(typeof data.satellitePRNs, "array");
-        assertEqual(data.satellitePRNs.len(), 5);
+        assertEqual("GP", data.talkerId);
+        assertEqual("GSA", data.sentenceId);
+        assertEqual("A", data.selMode);
+        assertEqual("3", data.mode);
+        assertEqual("2.5", data.PDOP);
+        assertEqual("1.3", data.HDOP);
+        assertEqual("2.1", data.VDOP);
+        assertEqual("array", typeof data.satellitePRNs);
+        assertEqual(5, data.satellitePRNs.len());
 
         // $GPGSA,A,1,,,,,,,,,,,,,99.99,99.99,99.99*30\r\n
         data = GPSParser.getGPSDataTable(GPS_SENTENCE_GSA_CHECKSUM_EMPTY);
-        assertEqual(data.talkerId, "GP");
-        assertEqual(data.sentenceId, "GSA");
-        assertEqual(data.selMode, "A");
-        assertEqual(data.mode, "1");
-        assertEqual(data.PDOP, "99.99");
-        assertEqual(data.HDOP, "99.99");
-        assertEqual(data.VDOP, "99.99");
-        assertEqual(typeof data.satellitePRNs, "array");
-        assertEqual(data.satellitePRNs.len(), 0);
+        assertEqual("GP", data.talkerId);
+        assertEqual("GSA", data.sentenceId);
+        assertEqual("A", data.selMode);
+        assertEqual("1", data.mode);
+        assertEqual("99.99", data.PDOP);
+        assertEqual("99.99", data.HDOP);
+        assertEqual("99.99", data.VDOP);
+        assertEqual("array", typeof data.satellitePRNs);
+        assertEqual(0, data.satellitePRNs.len());
 
         // $GNGSA,A,3,30,07,08,05,11,13,18,,,,,,1.45,0.97,1.08*19\r\n
         data = GPSParser.getGPSDataTable(GPS_SENTENCE_GSA_CHECKSUM_MORE);
-        assertEqual(data.talkerId, "GN");
-        assertEqual(data.sentenceId, "GSA");
-        assertEqual(data.selMode, "A");
-        assertEqual(data.mode, "3");
-        assertEqual(data.PDOP, "1.45");
-        assertEqual(data.HDOP, "0.97");
-        assertEqual(data.VDOP, "1.08");
-        assertEqual(typeof data.satellitePRNs, "array");
-        assertEqual(data.satellitePRNs.len(), 7);
+        assertEqual("GN", data.talkerId);
+        assertEqual("GSA", data.sentenceId);
+        assertEqual("A", data.selMode);
+        assertEqual("3", data.mode);
+        assertEqual("1.45", data.PDOP);
+        assertEqual("0.97", data.HDOP);
+        assertEqual("1.08", data.VDOP);
+        assertEqual("array", typeof data.satellitePRNs);
+        assertEqual(7, data.satellitePRNs.len());
 
         local csInvalid = GPSParser.getGPSDataTable("$GNGSA,A,3,30,07,08,05,11,13,18,,,,,,1.45,0.97,1.08*10\r\n");
-        assertEqual(GPSParser_INVALID_SENTENCE_ERROR, csInvalid.error);
+        assertEqual(GPS_PARSER_INVALID_SENTENCE_ERROR, csInvalid.error);
         local tooShort = GPSParser.getGPSDataTable("$GPGSA,A,1,,,,,,,,,,99.99,99.99,99.99\r\n");
-        assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooShort.error);
+        assertEqual(GPS_PARSER_UNEXPECTED_FIELDS_ERROR, tooShort.error);
         local tooLong = GPSParser.getGPSDataTable("$GPGSA,A,1,,,,,,,,,,,,,,99.99,99.99,99.99\r\n");
-        assertEqual(GPSParser_UNEXPECTED_FIELDS_ERROR, tooLong.error);
+        assertEqual(GPS_PARSER_UNEXPECTED_FIELDS_ERROR, tooLong.error);
     }
 
     function testUnsupportedType() {
         // "$GPXTE,A,A,0.67,L,N*6F\r\n"
         local data = GPSParser.getGPSDataTable(GPS_UNSUPPORTED_TYPE);
-        assertEqual(data.error, GPSParser_UNSUPPORTED_TYPE);
+        assertEqual(data.error, GPS_PARSER_UNSUPPORTED_TYPE);
     }
 
     function tearDown() {}
