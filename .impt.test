@@ -8,5 +8,5 @@
     "*.test.nut",
     "tests/**/*.test.nut"
   ],
-  "deviceFile": "GPS.device.lib.nut"
+  "deviceFile": "GPSParser.device.lib.nut"
 }
