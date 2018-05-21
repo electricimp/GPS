@@ -8,7 +8,7 @@ Electric Imp offers two GPS libraries. A driver for GPS modules that can be inte
 
 This library is a parser for standard NMEA sentences used by GPS devices.
 
-All data is transmitted in the form of sentences. Only printable Ascii characters plus CR (carriage return) and LF (line feed) are allowed in a GPS sentence. The expected sentence format starts with $, which is followed by five letters. The first two letters are the talker identifier. The next three letters are the sentence identifier. Following the identifiers are a number of data fields separated by commas, then an optional checksum, and finally a carriage return and a line feed (CRLF). The data fields are uniquely defined for each sentence type.
+All data is transmitted in the form of sentences. Only printable Ascii characters plus CR (carriage return) and LF (line feed) are allowed in a GPS sentence. The expected sentence format starts with $, which is followed by five characters. The first two characters are the talker identifier. The next three characters are the sentence identifier. Following the identifiers are a number of data fields separated by commas, then an optional checksum, and finally a carriage return and a line feed (CRLF). The data fields are uniquely defined for each sentence type.
 
 For information on formats used in satellite data packets, please see [this page](http://www.gpsinformation.org/dale/nmea.htm).
 
@@ -47,7 +47,7 @@ if (hasChecksum) {
 
 ### isValid(*sentence*) ###
 
-This method is used to check whether a GPS sentence is valid, ie. its checksum, if it has one, is correct.
+This method is used to check whether a GPS sentence is valid &mdash; ie. its checksum, if it has one, is correct.
 
 #### Parameters ####
 
@@ -90,10 +90,10 @@ Table &mdash; A table containing any of the following keys (*talkerId* and *sent
 | *mTrack* | String | Magnetic track made good |
 | *speedKnots* | String | Ground speed in knots |
 | *speedKPH* | String | Ground speed in kilometers per hour |
-| *modeIndicator* | String | Signal integrity: A=autonomous, D=differential, E=Estimated, N=not valid, S=Simulator |
+| *modeIndicator* | String | Signal integrity: `"A"` (autonomous), `"D"` (differential), `"E"` (estimated), `"N"` (not valid) or `"S"` (simulated) |
 | *error* | String | Error description |
 
-#### RMC - Recommended Minimum Data for GPS (Position, Velocity, Time) ####
+#### RMC: Recommended Minimum Data for GPS (Position, Velocity, Time) ####
 
 | Key | Type | Description |
 | --- | --- | --- |
@@ -107,7 +107,7 @@ Table &mdash; A table containing any of the following keys (*talkerId* and *sent
 | *longitude* | String | The longitude received in decimal degrees |
 | *status* | String | The status of the satellite: A=active or V=Void |
 | *mVar* | String | Magnetic variation in degrees |
-| *modeIndicator* | String | Signal integrity: A=autonomous, D=differential, E=Estimated, N=not valid, S=Simulator |
+| *modeIndicator* | String | Signal integrity: `"A"` (autonomous), `"D"` (differential), `"E"` (estimated), `"N"` (not valid) or `"S"` (simulated) |
 | *error* | String | Error description |
 
 #### GLL: Geographic Position, Latitude and Longitude ####
@@ -117,10 +117,10 @@ Table &mdash; A table containing any of the following keys (*talkerId* and *sent
 | *talkerId* | String | Talker identifier, ie. `"GP"` or `"GN"` |
 | *sentenceId* | String | Sentence identifie: `"GLL"` (constant *GPS_PARSER_GLL*) |
 | *time* | String | UTC Time fix taken in the form `"hhmmss"` |
-| *status* | String | The status of the satellite: A=active or V=Void |
+| *status* | String | The status of the satellite: `"A"` (active) or `"V"` (void) |
 | *latitude* | String | The latitude received in decimal degrees |
 | *longitude* | String | The longitude received in decimal degrees |
-| *modeIndicator* | String | Signal integrity: A=autonomous, D=differential, E=Estimated, N=not valid, S=Simulator |
+| *modeIndicator* | String | Signal integrity: `"A"` (autonomous), `"D"` (differential), `"E"` (estimated), `"N"` (not valid) or `"S"` (simulated) |
 | *error* | String | Error description |
 
 #### GGA: Global Positioning System Fix Data ####
@@ -132,7 +132,7 @@ Table &mdash; A table containing any of the following keys (*talkerId* and *sent
 | *time* | String | UTC Time fix taken in the form `"hhmmss"` |
 | *latitude* | String | The latitude received in decimal degrees |
 | *longitude* | String | The longitude received in decimal degrees |
-| *fixQuality* | String | The quality of the satellite fix: 0=invalid, 1-8=fix info |
+| *fixQuality* | String | The quality of the satellite fix: `"0"` (invalid) or `"1"`-`"8"` (fix info) |
 | *numSatellites* | String | The number of satellites being tracked |
 | *HDOP* | String | Horizontal dilution of position |
 | *altitude* | String | Altitude above mean sea level in meters |
@@ -150,7 +150,7 @@ Table &mdash; A table containing any of the following keys (*talkerId* and *sent
 | *numMsgs* | String | Total number of messages |
 | *msgNum* | String | Message number |
 | *numSatellites* | String | Number of satellites in view |
-| *satelliteInfo* | Array | Array of tables with detailed satellite info (satellitePRN, elevation, azimuth, SNR) |
+| *satelliteInfo* | Array | Array of tables with detailed satellite info (satellite PRN, elevation, azimuth, SNR) |
 | *error* | String | Error description |
 
 #### GSA: Overall Satellite Data ####
@@ -159,8 +159,8 @@ Table &mdash; A table containing any of the following keys (*talkerId* and *sent
 | --- | --- | --- |
 | *talkerId* | String | Talker identifier, ie. `"GP"` or `"GN"` |
 | *sentenceId* | String | Sentence identifier: `"GSA"` (constant *GPS_PARSER_GSA*) |
-| *selMode* | String | Selection mode: A=Auto, M=Manual |
-| *mode* | String | Mode: 1=no fix, 2=2D fix, 3=3D fix |
+| *selMode* | String | Selection mode: `"A"` (auto) or `"M"` (manual) |
+| *mode* | String | Mode: `"1"` (no fix), `"2"` (2D fix) or `"3"` (3D fix) |
 | *satellitePRNs* | Array | PRNs (IDs) of satellites used for fix |
 | *PDOP* | String | Dilution of precision |
 | *HDOP* | String | Horizontal dilution of precision |
@@ -215,7 +215,7 @@ This method takes the two latitude fields derived from a GPS GGA sentence (using
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | *rawLatitude* | String | Yes | The raw latitude value, eg. `"3723.71721"` |
-| *direction* | String | Yes | The direction indicator, eg.`"N"` |
+| *direction* | String | Yes | The direction indicator, eg. `"N"` |
 
 #### Return Value ####
 
@@ -234,7 +234,7 @@ This method takes the two longitude fields derived from a GPS GGA sentence (usin
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
 | *rawLatitude* | String | Yes | The raw longitude value, eg. `"12206.14085"` |
-| *direction* | String | Yes | The direction indicator, eg.`"W"` |
+| *direction* | String | Yes | The direction indicator, eg. `"W"` |
 
 #### Return Value ####
 
