@@ -78,7 +78,7 @@ This method parses a GPS sentence into a table containing specific keys. It does
 
 #### Return Value ####
 
-Table &mdash; A table containing any of the following keys (*talkerId* and *sentenceId* are always included):
+Table &mdash; A table containing any of the following keys (the keys *talkerId* and *sentenceId* are always included):
 
 #### VTG: Vector Track and Speed over Ground ####
 
