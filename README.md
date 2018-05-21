@@ -270,7 +270,7 @@ This library is a driver class for GPS modules that can be interfaced over UART.
 
 ## GPSUARTDriver Usage ##
 
-#### Constructor: GPSUARTDriver(*uart[, options]*)
+### Constructor: GPSUARTDriver(*uart[, options]*) ###
 
 #### Parameters ####
 
