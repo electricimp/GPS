@@ -1,6 +1,6 @@
 # GPS #
 
-Electric Imp offers two GPS libraries. A driver for GPS modules that can be interfaced over UART ([GPSUARTDriver](#gpsuartdriver), and a GPS data parser ([GPSParser](#gpsparser)).
+Electric Imp offers two GPS libraries. A driver for GPS modules that can be interfaced over UART ([GPSUARTDriver](#gpsuartdriver)), and a GPS data parser ([GPSParser](#gpsparser)).
 
 [![Build Status](https://api.travis-ci.org/electricimp/GPS.svg?branch=master)](https://travis-ci.org/electricimp/GPS)
 
