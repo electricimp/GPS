@@ -172,7 +172,7 @@ Table &mdash; A table containing any of the following keys (the keys *talkerId* 
 ```squirrel
 local sentence = "$GPGLL,4916.45,N,12311.12,W,225444,A,*1D\r\n";
 local gpsData = GPSParser.getGPSDataTable(sentence);
-if gpsData.sentenceId == GPS_PARSER_GLL) {
+if (gpsData.sentenceId == GPS_PARSER_GLL) {
   server.log("GLL message received.");
   if (gpsData.status == "A" && "latitude" in gpsData && "longitude" in gpsData) {
     server.log(format("Latitude %s, Longitude %s", gpsData.latitude, gpsData.longitude));
@@ -208,7 +208,7 @@ foreach (idx, item in fields) {
 
 ### parseLatitude(*rawLatitude, direction*) ###
 
-This method takes the two latitude fields derived from a GPS GGA sentence (using *getFields()*) and converts them into a single latitude in decimal degrees.
+This method takes the two latitude fields derived from a GPS sentence (using *getFields()*) and converts them into a single latitude in decimal degrees.
 
 #### Parameters ####
 
@@ -227,7 +227,7 @@ See below.
 
 ### parseLongitude(*rawLongitude, direction*) ###
 
-This method takes the two longitude fields derived from a GPS GGA sentence (using *getFields()*) and converts them into a single longitude in decimal degrees.
+This method takes the two longitude fields derived from a GPS sentence (using *getFields()*) and converts them into a single longitude in decimal degrees.
 
 #### Parameters ####
 
@@ -264,7 +264,7 @@ if (type == GPS_PARSER_GGA) {
 
 This library is a driver class for GPS modules that can be interfaced over UART. It has been tested on [UBlox NEO-M8N](https://www.u-blox.com/sites/default/files/NEO-M8-FW3_DataSheet_%28UBX-15031086%29.pdf) and [UBlox LEA-6S](https://www.u-blox.com/sites/default/files/products/documents/LEA-6_DataSheet_%28UBX-14044797%29.pdf) modules.
 
-**Note** The class methods *hasFix()*, *getLatitude()* and *getLongitude()*, and the constructor’s *parseData* option are dependent on the [*GPSParser*](#gpsparser) library. If *GPSParser* is not detected, the class methods will return an error string, and the *parseData* option will default to `false`.
+**Note:** The class methods *hasFix()*, *getLatitude()* and *getLongitude()*, and the constructor’s *parseData* option are dependent on the [*GPSParser*](#gpsparser) library. If *GPSParser* is not detected, the class methods will return an error string, and the *parseData* option will default to `false`.
 
 **To use this library in your project, add** `#require "GPSUARTDriver.device.lib.nut:1.0.0"` **to the top of your device code.**
 
@@ -287,7 +287,7 @@ Any table passed into *options* may contain any of the following keys:
 | *wordSize* | Integer | 8 | The word size in bits (7 or 8) used to configure the UART |
 | *parity* | Integer | *PARITY_NONE* | Parity (*PARITY_NONE*, *PARITY_EVEN* or *PARITY_ODD*) used to configure the UART |
 | *stopBits* | Integer | 1 | Stop bits (1 or 2) used to configure the UART |
-| *gspDataReady* | Function | `null` | Callback that is called when a new GPS sentence is received. The callback has two parameters of its own, both required: a boolean, *hasActiveLocation*, indicating whether the GPS sentence has active location data, and *gpsData*, which will be either the GPS sentence or a table with parsed GPS data |
+| *gspDataReady* | Function | `null` | Callback that is called when a new GPS sentence is received. The callback has two parameters of its own, both required: a boolean, *hasActiveLocation*, indicating whether the GPS sentence has active location data, and *gpsData*, which will be either the GPS sentence or a table with parsed GPS data. If *GPSParser* is not detected the *hasActiveLocation* parameter will be `null` |
 | *parseData* | Boolean | `false` | If `false`, the unparsed GPS sentence will be passed to the *gspDataReady* callback’s *gpsData* parameter. If `true`, and *GPSParser* is detected, the *gpsData* parameter will contain the table returned by *GPSParser.getGPSDataTable()* |
 
 ## GPSUARTDriver Methods ##
