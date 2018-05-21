@@ -105,7 +105,7 @@ Table &mdash; A table containing any of the following keys (*talkerId* and *sent
 | *trackAngle* | String | Track angle in degrees true |
 | *latitude* | String | The latitude received in decimal degrees |
 | *longitude* | String | The longitude received in decimal degrees |
-| *status* | String | The status of the satellite: A=active or V=Void |
+| *status* | String | The status of the satellite: `"A"` (active) or `"V"` (void) |
 | *mVar* | String | Magnetic variation in degrees |
 | *modeIndicator* | String | Signal integrity: `"A"` (autonomous), `"D"` (differential), `"E"` (estimated), `"N"` (not valid) or `"S"` (simulated) |
 | *error* | String | Error description |
