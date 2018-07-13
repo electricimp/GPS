@@ -329,7 +329,7 @@ String &mdash; the last GPS sentence, or `null` if no sentences have been receiv
 
 ```squirrel
 #require "GPSParser.device.lib.nut:1.0.0"
-#require "GPSUARTDriver.device.lib.nut:1.0.0"
+#require "GPSUARTDriver.device.lib.nut:1.1.0"
 
 // Create GPS variable
 local gps = null;
