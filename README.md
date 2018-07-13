@@ -289,6 +289,7 @@ Any table passed into *options* may contain any of the following keys:
 | *stopBits* | Integer | 1 | Stop bits (1 or 2) used to configure the UART |
 | *gspDataReady* | Function | `null` | Callback that is called when a new GPS sentence is received. The callback has two parameters of its own, both required: a boolean, *hasActiveLocation*, indicating whether the GPS sentence has active location data, and *gpsData*, which will be either the GPS sentence or a table with parsed GPS data. If *GPSParser* is not detected the *hasActiveLocation* parameter will be `null` |
 | *parseData* | Boolean | `false` | If `false`, the unparsed GPS sentence will be passed to the *gspDataReady* callback’s *gpsData* parameter. If `true`, and *GPSParser* is detected, the *gpsData* parameter will contain the table returned by *GPSParser.getGPSDataTable()* |
+| *rxFifoSize* | Integer | The OS default (currently 80) | Sets the size (in bytes) of the input FIFO stack of the UART serial bus. |
 
 ## GPSUARTDriver Methods ##
 
