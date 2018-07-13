@@ -266,7 +266,7 @@ This library is a driver class for GPS modules that can be interfaced over UART.
 
 **Note:** The class methods *hasFix()*, *getLatitude()* and *getLongitude()*, and the constructor’s *parseData* option are dependent on the [*GPSParser*](#gpsparser) library. If *GPSParser* is not detected, the class methods will return an error string, and the *parseData* option will default to `false`.
 
-**To use this library in your project, add** `#require "GPSUARTDriver.device.lib.nut:1.0.0"` **to the top of your device code.**
+**To use this library in your project, add** `#require "GPSUARTDriver.device.lib.nut:1.1.0"` **to the top of your device code.**
 
 ## GPSUARTDriver Usage ##
 

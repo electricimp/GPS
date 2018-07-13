@@ -19,7 +19,7 @@
 
 class GPSUARTDriver {
 
-    static VERSION = "1.0.0";
+    static VERSION = "1.1.0";
 
     function _statics_() {
         const LINE_MAX          = 150;
