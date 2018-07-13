@@ -19,7 +19,7 @@
 
 class GPSUARTDriver {
 
-    static VERSION = "1.0.0";
+    static VERSION = "1.1.0";
 
     function _statics_() {
         const LINE_MAX          = 150;
@@ -56,11 +56,14 @@ class GPSUARTDriver {
         local stopBits = ("stopBits" in opts) ? opts.stopBits : DEFAULT_STOP_BITS;
         local parity = ("parity" in opts) ? opts.parity : PARITY_NONE;
         if ("gspDataReady" in opts) _callback = opts.gspDataReady;
+
         if (_hasGPSParser) {
             _parseData = ("parseData" in opts) ? opts.parseData : true;
         } else {
             _parseData = false;
         }
+
+        if ("rxFifoSize" in opts) _gps.setrxfifosize(opts.rxFifoSize);
 
         // GPS is configured by the constructor so that we can register the rxdata callback
         _gps.configure(baudRate, wordSize, parity, stopBits, NO_CTSRTS, _uartHandler.bindenv(this));
