@@ -54,7 +54,7 @@ class GPSUARTDriverTests extends ImpTestCase {
     }
 
     // Resets class variables to default state
-    function resetGSPVars() {
+    function resetGPSVars() {
         // Configure default GPS variable state
         gps._hasFix       = false;
         gps._gpsLine      = "";
@@ -65,7 +65,7 @@ class GPSUARTDriverTests extends ImpTestCase {
     }
 
     function testHasFix() {
-        resetGSPVars();
+        resetGPSVars();
         info("Default state GPS has no fix.");
         assertTrue(!gps.hasFix());
 
@@ -81,7 +81,7 @@ class GPSUARTDriverTests extends ImpTestCase {
     }
 
     function testLocationGetters() {
-        resetGSPVars();
+        resetGPSVars();
         info("Default state GPS has no location.");
         assertEqual(null, gps.getLatitude());
         assertEqual(null, gps.getLongitude());
@@ -106,7 +106,7 @@ class GPSUARTDriverTests extends ImpTestCase {
     }
 
     function testGetGPSSentence() {
-        resetGSPVars();
+        resetGPSVars();
         info("Default state GPS has no stored last sentence.");
         assertEqual(null, gps.getGPSSentence());
 
@@ -128,7 +128,7 @@ class GPSUARTDriverTests extends ImpTestCase {
 
         // Parse data false
         info("Data ready callback with parser included. Parse data set to false.");
-        resetGSPVars();
+        resetGPSVars();
         gps._parseData = false;
         local exptdDataFormat = "string";
         local exptdHasLoc;
@@ -151,7 +151,7 @@ class GPSUARTDriverTests extends ImpTestCase {
 
         // Parse data true
         info("Data ready callback with parser included. Parse data set to true.");
-        resetGSPVars();
+        resetGPSVars();
         gps._parseData = true;
         exptdDataFormat = "table";
 
@@ -183,7 +183,7 @@ class GPSUARTDriverTests extends ImpTestCase {
 
         // Parse data false
         info("Data ready callback parser not included. Parse data set to false always returns hasLoc: null, data type string.");
-        resetGSPVars();
+        resetGPSVars();
         gps._parseData = false;
 
         // GPS data no location
@@ -194,7 +194,7 @@ class GPSUARTDriverTests extends ImpTestCase {
 
         // Parse data true
         info("Data ready callback parser not included. Parse data set to true always returns hasLoc: null, data type string.");
-        resetGSPVars();
+        resetGPSVars();
         gps._parseData = true;
 
         // GPS data no location
@@ -211,7 +211,7 @@ class GPSUARTDriverTests extends ImpTestCase {
     function testNoParserErrors() {
         local ERROR_NO_PARSER = "No GPS parser found. Cannot parse GPS data.";
         gps._hasGPSParser = false;
-        resetGSPVars();
+        resetGPSVars();
 
         // GPS has location
         uartSimulator(GPS_SENTENCE_GLL_CHECKSUM_FULL_MI);
