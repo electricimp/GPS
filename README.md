@@ -266,7 +266,7 @@ This library is a driver class for GPS modules that can be interfaced over UART.
 
 **Note:** The class methods *hasFix()*, *getLatitude()* and *getLongitude()*, and the constructor’s *parseData* option are dependent on the [*GPSParser*](#gpsparser) library. If *GPSParser* is not detected, the class methods will return an error string, and the *parseData* option will default to `false`.
 
-**To use this library in your project, add** `#require "GPSUARTDriver.device.lib.nut:1.1.0"` **to the top of your device code.**
+**To use this library in your project, add** `#require "GPSUARTDriver.device.lib.nut:1.2.0"` **to the top of your device code.**
 
 ## GPSUARTDriver Usage ##
 
@@ -287,8 +287,8 @@ Any table passed into *options* may contain any of the following keys:
 | *wordSize* | Integer | 8 | The word size in bits (7 or 8) used to configure the UART |
 | *parity* | Integer | *PARITY_NONE* | Parity (*PARITY_NONE*, *PARITY_EVEN* or *PARITY_ODD*) used to configure the UART |
 | *stopBits* | Integer | 1 | Stop bits (1 or 2) used to configure the UART |
-| *gspDataReady* | Function | `null` | Callback that is called when a new GPS sentence is received. The callback has two parameters of its own, both required: a boolean, *hasActiveLocation*, indicating whether the GPS sentence has active location data, and *gpsData*, which will be either the GPS sentence or a table with parsed GPS data. If *GPSParser* is not detected the *hasActiveLocation* parameter will be `null` |
-| *parseData* | Boolean | `false` | If `false`, the unparsed GPS sentence will be passed to the *gspDataReady* callback’s *gpsData* parameter. If `true`, and *GPSParser* is detected, the *gpsData* parameter will contain the table returned by *GPSParser.getGPSDataTable()* |
+| *gpsDataReady* | Function | `null` | Callback that is called when a new GPS sentence is received. The callback has two parameters of its own, both required: a boolean, *hasActiveLocation*, indicating whether the GPS sentence has active location data, and *gpsData*, which will be either the GPS sentence or a table with parsed GPS data. If *GPSParser* is not detected the *hasActiveLocation* parameter will be `null` |
+| *parseData* | Boolean | `false` | If `false`, the unparsed GPS sentence will be passed to the *gpsDataReady* callback’s *gpsData* parameter. If `true`, and *GPSParser* is detected, the *gpsData* parameter will contain the table returned by *GPSParser.getGPSDataTable()* |
 | *rxFifoSize* | Integer | The OS default (currently 80) | Sets the size (in bytes) of the input FIFO stack of the UART serial bus. |
 
 ## GPSUARTDriver Methods ##
@@ -329,7 +329,7 @@ String &mdash; the last GPS sentence, or `null` if no sentences have been receiv
 
 ```squirrel
 #require "GPSParser.device.lib.nut:1.0.0"
-#require "GPSUARTDriver.device.lib.nut:1.1.0"
+#require "GPSUARTDriver.device.lib.nut:1.2.0"
 
 // Create GPS variable
 local gps = null;
@@ -350,7 +350,7 @@ function gpsHandler(hasLocation, data) {
 }
 
 // GPS options
-local gpsOpts = {"gspDataReady" : gpsHandler, "parseData" : true};
+local gpsOpts = {"gpsDataReady" : gpsHandler, "parseData" : true};
 
 // Initialize GPS UART driver
 gps = GPSUARTDriver(hardware.uart1, gpsOpts);
