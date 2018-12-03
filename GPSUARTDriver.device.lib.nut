@@ -19,7 +19,7 @@
 
 class GPSUARTDriver {
 
-    static VERSION = "1.1.0";
+    static VERSION = "1.2.0";
 
     function _statics_() {
         const LINE_MAX          = 150;
@@ -55,7 +55,12 @@ class GPSUARTDriver {
         local wordSize = ("wordSize" in opts) ? opts.wordSize : DEFAULT_WORD_SIZE;
         local stopBits = ("stopBits" in opts) ? opts.stopBits : DEFAULT_STOP_BITS;
         local parity = ("parity" in opts) ? opts.parity : PARITY_NONE;
+        
+        // v1.2.0: Correct typo in key name (gspDataReady -> gpsDataReady)
+        //         but don't remove the old, incorrect key so that we retain
+        //         backward compatibility
         if ("gspDataReady" in opts) _callback = opts.gspDataReady;
+        if ("gpsDataReady" in opts) _callback = opts.gpsDataReady;
 
         if (_hasGPSParser) {
             _parseData = ("parseData" in opts) ? opts.parseData : true;
